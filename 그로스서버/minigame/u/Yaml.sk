@@ -1,0 +1,99 @@
+on load:
+	set {_path} to "%absolute path of file path """"%" #호스팅에따라 환경이 달라지기에 파일의 절대경로구해줌. Addon(Skent)
+	replace "\minigame" with "" in {_path}
+	#각각의 경로가 이름이 너무길어 쓰기편하게 ID를 축약해서 적어둠.
+	set {fileloc::playerdata} to "%{_path}%\DB\MiniGame\PlayerData" #pd\
+	set {fileloc::globalplayerdata} to "%{_path}%\DB\Global\PlayerData" #gpd\
+	set {fileloc::globalusers} to "%{_path}%\DB\Global\Users.yaml" #gusers
+	set {fileloc::users} to "%{_path}%\DB\MiniGame\Users.yaml"#users
+	load non-relative yaml "%{fileloc::users}%" as "users"
+	load non-relative yaml "%{fileloc::globalusers}%" as "gusers"
+
+on join:
+	load non-relative yaml "%{fileloc::playerdata}%\%uuid of player%.yaml" as "pd\%uuid of player%"
+	load non-relative yaml "%{fileloc::globalplayerdata}%\%uuid of player%.yaml" as "gpd\%uuid of player%"
+	if yaml value "firstjoin" from "pd\%uuid of player%" is not set:
+		log "[닉네임최초등록 %uuid of player% ] %name of player%" to "nick"
+		set yaml value "%uuid of player%.%name of player%" from "users" to now formatted with "YYYY-MM-dd HH:mm"
+		set yaml value "%uuid of player%.%name of player%" from "gusers" to now formatted with "YYYY-MM-dd HH:mm"
+		set yaml value "firstjoin" from "pd\%uuid of player%" to now formatted with "YYYY-MM-dd HH:mm"
+		save yaml "users"
+		save yaml "gusers"
+	set yaml value "lastjoin" from "pd\%uuid of player%" to now formatted with "YYYY-MM-dd HH:mm"
+	save yaml "pd\%uuid of player%"
+	save yaml "gpd\%uuid of player%"
+on quit:
+	set yaml value "lastjoin" from "pd\%uuid of player%" to now formatted with "YYYY-MM-dd HH:mm"
+	unload yaml "pd\%uuid of player%"
+	unload yaml "gpd\%uuid of player%"
+	
+	
+#아래 코드들은 모두 비효율적이라 생각하여 폐기함.	
+	# ExportAllYaml()
+	# loop {user::name::*}: #데이터베이스에서 미니게임서버 유저의 데이터만을 뽑아오기위해 유저를 저장해두고 루프함.
+		# ImportYaml("playerdata::%loop-index%::*")
+		# ImportYaml("globalplayerdata::%loop-index%::*")		
+# on unload:
+	# ExportAndDelAllYaml() #서버종료시 Yaml에 데이터 저장후 변수제거.
+	# delete {fileloc::*}
+# function ImportYaml(var:text): #Yaml데이터를 Skript변수로 저장함.
+	# set {_l::*} to {_var} split by "::"
+	# file exists of "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml" is true
+	# if {_l::3} is "*": #yaml파일에 있는 모든 데이터를 변수로 저장함. (while문이나 함수같은거로하면 불러오는거에서 문제생길수있고 서버에서 하위값을 최대 3개까지밖에 사용하지않기에 이렇게해둠.)
+		# loop yaml nodes "" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml":
+			# set {_a} to yaml value "%loop-value%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml"
+			# if "%{_a}%" contains "MemorySection": #yaml 데이터의 하위 값이 있을경우 (있으면 출력시 MemorySection이라는 문구가뜸)
+				# loop yaml nodes "%loop-value%" from "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml":
+					# set {_a} to yaml value "%loop-value-1%.%loop-value-2%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml"
+					# if "%{_a}%" contains "MemorySection": #yaml 데이터의 하위 값이 있을경우
+						# loop yaml nodes "%loop-value-1%.%loop-value-2%" from "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml":
+							# set {data::%{_l::1}%::%{_l::2}%::%loop-value-1%.%loop-value-2%.%loop-value-3%} to yaml value "%loop-value-1%.%loop-value-2%.%loop-value-3%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml"
+					# else:
+						# set {data::%{_l::1}%::%{_l::2}%::%loop-value-1%.%loop-value-2%} to yaml value "%loop-value-1%.%loop-value-2%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml"
+			# else:
+				# set {data::%{_l::1}%::%{_l::2}%::%loop-value%} to yaml value "%loop-value%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml"
+	# else:	
+		# set {data::%{_var}%} to yaml value "%{_l::3}%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml"
+# function ExportYaml(var:text): #Skript변수를 Yaml데이터로 저장함.
+	# set {_l::*} to {_var} split by "::"
+	# if {_l::3} is "*":
+		# loop {data::%{_l::1}%::%{_l::2}%::*}:
+			# set yaml value "%loop-index%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml" to {data::%{_l::1}%::%{_l::2}%::%loop-index%}
+	# else:
+		# set yaml value "%{_l::3}%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml" to {data::%{_var}%}
+# function ExportAllYaml():
+	# loop indexes of {data::*}:
+		# loop indexes of {data::%loop-value%::*}:
+			# loop {data::%loop-value-1%::%loop-value-2%::*}:
+				# set yaml value "%loop-index%" from file "%{fileloc::%loop-value-1%}%\%loop-value-2%.yaml" to loop-value-3		
+# function ExportAndDelAllYaml():
+	# loop indexes of {data::*}:
+		# loop indexes of {data::%loop-value%::*}:
+			# loop {data::%loop-value-1%::%loop-value-2%::*}:
+				# if {data::%loop-value-1%::%loop-value-2%::%loop-index%} is not "\Delete": #변수의 값을 \Delete 로 설정하면 yaml데이터 또한 제거되게함. (잘못된 데이터를 쉽게 제거하기위함.)
+					# set yaml value "%loop-index%" from file "%{fileloc::%loop-value-1%}%\%loop-value-2%.yaml" to loop-value-3
+				# else:
+					# broadcast "%loop-index%" #미완성
+					# delete yaml nodes "%loop-index%" from file "%{fileloc::%loop-value-1%}%\%loop-value-2%.yaml"
+				# delete {data::%loop-value-1%::%loop-value-2%::%loop-index%}				
+# function DeleteYamlAndVar(war:text):
+	# set {_l::*} to {_var} split by "::"
+	# if {_l::3} is "*":
+		# loop {data::%{_l::1}%::%{_l::2}%::*}:
+			# set yaml value "%loop-index%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml" to {data::%{_l::1}%::%{_l::2}%::%loop-index%}
+	# else:
+		# set yaml value "%{_l::3}%" from file "%{fileloc::%{_l::1}%}%\%{_l::2}%.yaml" to {data::%{_var}%}	
+# command /data [<text>] [<text>]:
+	# permission: admin
+	# trigger:
+		# if arg 1 is "보기":
+			# if arg 2 is "모두":
+				# loop indexes of {data::*}:
+					# loop indexes of {data::%loop-value%::*}:
+						# loop {data::%loop-value-1%::%loop-value-2%::*}:
+							# send "&a{data::&a%loop-value-1%&a::%loop-value-2%&a::%loop-index%} &c%{fileloc::%loop-value-1%}%&c\%loop-value-2%&c.yaml %{data::%loop-value-1%::%loop-value-2%::%loop-index%}%"
+			# else:
+				# send "%{data::%arg-2%}%"
+			
+		# else:
+			# send "&f/data <보기|> <모두|변수이름>"

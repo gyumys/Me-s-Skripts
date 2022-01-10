@@ -1,0 +1,43 @@
+#스폰에있는 점프맵을 만드는 스크립트.
+#월드에딧으로 복붙하면되지만 심심해서 만들어봄.
+
+#이거말고 directions써서 할 수 도있음,
+#처음제작할때는 forward밖에 아는 방향없어서 이렇게 했지만.
+#front behind right left 등 있음.
+command /스폰점프맵생성 [<integer>]:
+	trigger:
+		if arg 1 is not set:
+			send "&e/스폰점프맵 생성 [크기](1당 7블럭)"
+			stop	
+		set {_loc} to player's location	
+		if player's facing is south:
+			set {_loc}'s yaw to 0
+		else if player's facing is west:
+			set {_loc}'s yaw to 90
+		else if player's facing is north:
+			set {_loc}'s yaw to 180
+		else:
+			set {_loc}'s yaw to 270		
+		set {_loc}'s pitch to 0	
+		set {_loc} to location 1 forward and downward {_loc}
+		set {_y} to {_loc}'s y-coordinate
+		set {_1} to {_loc}
+		set {_yaw} to {_loc}'s yaw
+		set {_2} to location 2 forward {_loc}
+		set {_3} to location 2 forward {_loc}
+		add 270 to {_3}'s yaw
+		set {_3} to location 2 forward {_3}
+		add 270 to {_loc}'s yaw
+		set {_4} to location 2 forward {_loc}
+		set {_loc}'s yaw to {_yaw}
+		set {_blocks::*} to red wool block, orange wool block, yellow wool block, lime wool block, light blue wool block, blue wool block and purple wool block
+		loop arg-1 times:
+			loop {_blocks::*}:
+				if {_count} is 4:
+					set {_count} to 0
+				add 1 to {_count}	
+				add 1 to {_y}
+				set {_loc} to {_%{_count}%}
+				set {_loc}'s y-coordinate to {_y}
+				set block at {_loc} to loop-value-2
+				wait a tick

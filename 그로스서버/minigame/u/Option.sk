@@ -1,0 +1,128 @@
+#========== rww RandomWeaponWar ==========
+on load:
+	set {game::rww::maxjoin} to 10
+	set {game::rww::minijoin} to 1
+	set {game::rww::watingroom} to location(87.5, 115, 254.5, world("random_weapon_war"))
+	set {game::rww::info} to "&f&l랜덤무기전쟁%nl%%nl%&e&l랜덤으로 지급되는 아이템으로%nl%&e&l적을 죽여 최후의 1인이되면%nl%&e&l승리합니다."
+	set {game::rww::scoreboard::*} to "&f&l랜덤무기전쟁", "asdf", "qwer", ""
+#Npc
+	set {game::npc::rww} to "npc create 랜덤무기전쟁 --at 132.5,66,158.5,world"
+function OpenRandomWaponWar(p:player):
+	set {_gui} to chest inventory with 3 rows named "&f랜덤무기전쟁"
+	set slot integers from 0 and 26 of {_gui} to dark gray stained glass pane
+	set slot 10 of {_gui} to compass named "&c랜덤무기전쟁 1채널" with lore "&7현재인원 : %size of {game::rww::join::*}%/%{game::rww::maxjoin}%", "&7최소인원 : %{game::rww::minijoin}%" and "&a클릭시 해당게임에 참여합니다."
+	set slot 13 of {_gui} to compass named "&c랜덤무기전쟁 2채널" with lore "&c준비중"
+	set slot 16 of {_gui} to diamond sword named "&b자유전투" with lore "&c준비중"
+	open {_gui} to {_p}
+on inventory click:
+	if name of player's top inventory is "&f랜덤무기전쟁":
+		event-inventory is player's top inventory
+		if index of event-slot is 10:
+			JoinGame(player,"rww")
+on rightclick on player:	
+	if name of entity is "랜덤무기전쟁":
+		OpenRandomWaponWar(player)
+#========== aw AntWar ==========
+on load:
+	set {game::aw::maxjoin} to 16 #최대 인원
+	set {game::aw::minijoin} to 2 #최소 인원
+	set {game::aw::watingroom} to location(8.5, 66, 8.5, world("antwar")) #대기실 위치
+	set {game::aw::info} to "&f&l개미전쟁%nl%%nl%&e&l랜덤으로 지급되는 아이템으로%nl%&e&l적을 죽여 최후의 1인이되면%nl%&e&l승리합니다."
+	set {game::aw::title} to "&f&l개미전쟁"
+	set {game::aw::scoreboard::*} to "asf", "qwer", ""	
+#Npc
+	set {game::npc::aw} to "npc create 개미전쟁 --at 126.5,66,158.5,world"
+function OpenAntWar(p:player):
+	set {_gui} to chest inventory with 3 rows named "&f개미전쟁"
+	set slot integers from 0 and 26 of {_gui} to dark gray stained glass pane
+	set slot 10 of {_gui} to compass named "&c개미전쟁 1채널 (개인전)" with lore "&7현재인원 &7: &6%size of {game::aw::join::*}%/%{game::aw::maxjoin}%", "&7최소인원 &7: &b%{game::aw::minijoin}%" and "&a클릭시 해당게임에 참여합니다."
+	set slot 13 of {_gui} to compass named "&c개미 2채널" with lore "&c준비중"
+	set slot 16 of {_gui} to diamond sword named "&b자유전투" with lore "&c준비중"
+	open {_gui} to {_p}
+on inventory click:
+	if name of player's top inventory is "&f개미전쟁":
+		cancel event
+		event-inventory is player's top inventory
+		if index of event-slot is 10:
+			JoinGame(player,"aw")
+on rightclick on player:	
+	if name of entity is "개미전쟁":
+		OpenAntWar(player)		
+#========== mc MineChess ==========		
+
+on load:
+	set {game::mc::maxjoin} to 8 #최대 인원
+	set {game::mc::minijoin} to 2 #최소 인원
+	set {game::mc::watingroom} to location(188.5, 64, 252.5, world("minechess")) #대기실 위치
+	set {game::mc::info} to "&f&l개미전쟁%nl%%nl%&e&l랜덤으로 지급되는 아이템으로%nl%&e&l적을 죽여 최후의 1인이되면%nl%&e&l승리합니다."
+	set {game::mc::title} to "&f&l개미전쟁"
+#Npc
+	set {game::npc::mc} to "npc create 마인체스 --at 130.5,66,158.5,world"
+function OpenMineChess(p:player):
+	set {_gui} to chest inventory with 3 rows named "&f마인체스"
+	set slot integers from 0 and 26 of {_gui} to dark gray stained glass pane
+	set slot 13 of {_gui} to compass named "&c마인체스 1채널" with lore "&7현재인원 &7: &6%size of {game::mc::join::*}%/%{game::mc::maxjoin}%", "&7최소인원 &7: &b%{game::mc::minijoin}%" and "&a클릭시 해당게임에 참여합니다."
+	open {_gui} to {_p}
+on inventory click:
+	if name of player's top inventory is "&f마인체스":
+		cancel event
+		event-inventory is player's top inventory
+		if index of event-slot is 13:
+			JoinGame(player,"mc")
+on rightclick on player:	
+	if name of entity is "마인체스":
+		OpenMineChess(player)	
+#========== gb Gamble ==========
+on load:
+	set {game::gb::lobby} to location(-7.5, 63, 252.5, world("gamble"), 180, 0)
+	set {game::4mok::maxjoin} to 2
+	set {game::4mok::minijoin} to 2
+#Npc	
+	set {game::npc::gb} to "npc create 도박장 --at 128.5,66,158.5,world"
+	set {game::npc::gb_mm} to "npc create &e&l미니게임 마스터 --at 7.5,63.5,268.5,gamble"
+on inventory click:
+	if name of player's top inventory is "&f도박장":
+		cancel event
+		event-inventory is player's top inventory
+		index of event-slot is 13
+		teleport player to {game::gb::lobby}
+on rightclick on player:	
+	if name of entity is "도박장":
+		set {_gui} to chest inventory with 3 rows named "&f도박장"
+		set slot 13 of {_gui} to compass named "&c도박장" with lore "&7도박장에서 포인트를 불려보세요!"
+		open {_gui} to player	
+#========== Main Setting ==========
+options:
+	c: &c&f&a&d&e #드랍방지, 클릭방지 코드 (아이템 이름에 사용.)
+on load:
+	set {game::lobby::loc} to location(130.5, 65, 162.5, world("world"), 180, 0)
+	execute console command "npc remove all"
+	loop {game::npc::*}:
+		execute console command "%loop-value%"
+on unload:
+	delete {game::*}
+on load: #변수이름에서 대소문자구분이되지않아 index를 true, false로 하고 value를 텍스트로함.
+	set {game::world::default::false::*} to "doMobSpawning", "announceAdvancements", "disableElytraMovementCheck", "doEntityDrops", "doMobLoot", "spectatorsGenerateChunks", "doWeatherCycle" and "doDaylightCycle"
+	set {game::world::default::true::*} to "keepInventory"
+	set {game::lobby::title} to "&e&l그로스 서버"
+	set {game::lobby::scoreboard::*} to "", "&7코인 : &b%%player's money%%", "", "&7gross.fxh.kr"	
+command /게임룰설정:
+	permission: op
+	trigger:
+		loop worlds:
+			teleport player to loop-world's spawn
+			loop indexes of {game::world::default::*}:
+				loop {game::world::default::%loop-value-2%::*}:
+					execute op command "/gamerule %loop-value-3% %loop-value-2%"
+			set time in loop-world to 7:00
+			set weather in loop-world to clear
+on inventory click:
+	if inventory action is swap with hotbar:
+		send action bar "숫자키는 사용할 수 없습니다." to player
+		cancel event
+	player is not op
+	if name of event-item contains "{@c}": #이 if문을 if 와 : 을 지우고 한줄로 할경우 캔슬이 정상적으로 되지않음.
+		cancel event
+on drop:
+	name of event-item contains "{@c}"
+	cancel event

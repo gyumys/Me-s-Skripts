@@ -1,0 +1,65 @@
+options:
+	p: &7[ &bCASH &7] &f
+command /후원:
+	trigger:
+		send "{@p} 후원은 서버를 유지하는데 큰힘이 됩니다."
+		send "{@p} 후원 1원당 1캐시가 지급됩니다."
+		send "{@p} 후원 방법은 아래 디스코드에 문화상품권을 보내시면 후원이 처리됩니다." 
+		send "{@p} 후원은 아래 나와있는 디스코드로만 받고있습니다. 사칭에 유의해주세요."
+		send "{@p} 후원문의 : &9디스코드 규미##7691"
+command /캐시:
+	trigger:
+		send "{@p}%player%님의 현재 보유캐시 : %{data::globalplayerdata::%uuid of player%::cash}+0%"
+command /후원관리 [<text>] [<offlineplayer>] [<integer>] [<text>]:
+	permission: admin
+	trigger:
+		if file exists of "%{fileloc::globalplayerdata}%\%uuid of arg-2%.yaml" is true:
+			ImportYaml("globalplayerdata::%uuid of arg-2%::*")
+		set {_now} to now formatted with "YYYY-MM-dd HH:mm"
+		if arg 1 or arg 2 or arg 3 is not set:
+			send ""
+			send "{@p}/후원관리 처리 [닉네임] [금액]"	
+			send "{@p}/후원관리 추가 [닉네임] [금액] [사유]"
+			send "{@p}/후원관리 설정 [닉네임] [금액] [사유]"
+			send "{@p}/후원관리 차감 [닉네임] [금액] [사유]"
+			send ""
+		else if arg 1 is "처리":
+			broadcast ""
+			broadcast "&f%arg-2%&7님이 서버에 &b%IntegerToCurrency(arg-3)%&7원을 후원하였습니다."
+			broadcast "&6처리 날짜: &f%{_now}%"
+			broadcast ""	
+			log "처리 +%IntegerToCurrency(arg-3)%원 %arg-2% %uuid of arg-2%" to "cash"
+			add arg-3 to {data::globalplayerdata::%uuid of arg-2%::donate}
+			add arg-3 to {data::globalplayerdata::%uuid of arg-2%::cash}
+		else if arg 4 is not set:
+			send "{@p} 사유를 입력하세요."
+		else if arg 1 is "설정":
+			broadcast ""
+			broadcast "&7%arg-2%&f님의 후원금이 &b%IntegerToCurrency(arg-3)%&f원으로 설정되었습니다."
+			broadcast "&6사유: &f%arg-4%"
+			broadcast ""				
+			log "설정 %IntegerToCurrency(arg-3)%원 %arg-2% %uuid of arg-2% 사유: %arg-4%" to "cash"
+			set {data::globalplayerdata::%uuid of arg-2%::donate} to arg-3
+			set {data::globalplayerdata::%uuid of arg-2%::cash} to arg-3
+		else if arg 1 is "추가":
+			broadcast ""
+			broadcast "&7%arg-2%&f님의 후원금이 &b%IntegerToCurrency(arg-3)%&f원 만큼 추가되었습니다."
+			broadcast "&6사유: &f%arg-4%"
+			broadcast ""						
+			log "추가 +%IntegerToCurrency(arg-3)%원 %arg-2% %uuid of arg-2% 사유: %arg-4%" to "cash"
+			add arg-3 to {data::globalplayerdata::%uuid of arg-2%::donate}
+			add arg-3 to {data::globalplayerdata::%uuid of arg-2%::cash}
+		else if arg 1 is "차감":
+			if {data::globalplayerdata::%uuid of arg-2%::donate} - arg-3 < 0:
+				send "{@p}후원금이 0원보다 작으면 안됩니다."
+				stop
+			broadcast ""
+			broadcast "&7%arg-2%&f님의 후원금이 &b%IntegerToCurrency(arg-3)%&f원 만큼 차감되였습니다."
+			broadcast "&6사유: &f%arg-4%"
+			log "차감 -%IntegerToCurrency(arg-3)%원 %arg-2% %uuid of arg-2% 사유: %arg-4%" to "cash"
+			remove arg-3 from {data::globalplayerdata::%uuid of arg-2%::donate}
+			broadcast ""
+		#	file exists of "%{fileloc::globalplayerdata}%\%uuid of arg-2%.yaml" is true
+		ExportYaml("globalplayerdata::%uuid of arg-2%::*")
+		wait a tick
+		ImportYaml("globalplayerdata::%uuid of arg-2%::*")

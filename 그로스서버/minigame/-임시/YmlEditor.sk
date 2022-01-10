@@ -1,0 +1,5 @@
+options:
+	FileLoc: plugins/Skript/DB/
+command /텟:
+	trigger:
+		set yaml value "asdf.qwer" from file "{@FileLoc}asdf.yml" to "asdf"

@@ -1,0 +1,60 @@
+on load: #스코어보드 설정 예시.
+	set {scoreboard::test::title::*} to "&e&l테스트", "&6&l태&e&l스트", "&e&l태&6&l스&e&l트", "&e&l태스&6&l트"
+	set {scoreboard::test::scoreboard::1::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&4%%now%%"
+	set {scoreboard::test::scoreboard::2::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&c%%now%%"
+	set {scoreboard::test::scoreboard::3::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&6%%now%%"
+	set {scoreboard::test::scoreboard::4::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&e%%now%%"
+	set {scoreboard::test::scoreboard::5::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&2%%now%%"
+	set {scoreboard::test::scoreboard::6::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&a%%now%%"
+	set {scoreboard::test2::title::*} to "&f%%player%%", "&7%%player%%"
+	set {scoreboard::test2::scoreboard::1::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&f%%now%%"
+	set {scoreboard::test2::scoreboard::2::*} to "&f닉네임 : %%player%%", "&f체력 : &d%%player's health%%", "" and "&7%%now%%"
+on unload:
+	delete {scoreboard::*}
+function DeleteBoard(p:player):
+	loop 15 times:
+		delete the id based score "%{_p}%Slot%loop-number%" in stylish scoreboard "Score-%{_p}%"
+	delete stylish scoreboard "Score-%{_p}%"
+command /스코어보드 [<text=끄기>]: #예문
+	trigger:
+		if arg 1 is "끄기":
+			delete {scoreboard::%player%}
+		else:
+			set {scoreboard::%player%} to arg-1
+		DeleteBoard(player)
+on quit:
+	DeleteBoard(player)		
+on join:
+	while player is online:
+		if {scoreboard::%player%} is not set:
+			if stylish scoreboard "Score-%player%" is set:
+				DeleteBoard(player)
+		else:
+			if {scoreboard::%{scoreboard::%player%}%::scoreboard::1::*} is set:
+				add "&a", "&b", "&c", "&d", "&e", "&1", "&2", "&3", "&4", "&5", "&6", "&7", "&8", "&9" and "&f" to {_d::*}
+				if stylish scoreboard "Score-%player%" is not set:
+					delete {_j}
+					delete {_i}
+					create new stylish scoreboard named "Score-%player%"
+					evaluate "set {_s} to ""%{scoreboard::%{scoreboard::%player%}%::title::1}%""" #%player%와 같은 텍스트를 익스프레션으로 바꾸어 저장해줍니다. [Skquery]
+					set title of stylish scoreboard "Score-%player%" to "%{_s}%"
+					set stylish scoreboard of player to "Score-%player%"
+					set {_slot} to size of {scoreboard::%{scoreboard::%player%}%::scoreboard::1::*}
+					loop {scoreboard::%{scoreboard::%player%}%::scoreboard::1::*}:
+						evaluate "set {_s} to ""%loop-value%"""
+						create a new id based score "%player%Slot%{_slot}%" with text "%{_d::%{_slot}%}%%{_s}%" slot {_slot} for stylish scoreboard "Score-%player%"
+						subtract 1 from {_slot}
+				add 1 to {_i}
+				add 1 to {_j}
+				evaluate "set {_s} to ""%{scoreboard::%{scoreboard::%player%}%::title::%{_i}%}%"""
+				set title of stylish scoreboard "Score-%player%" to {_s}
+				set {_slot} to size of {scoreboard::%{scoreboard::%player%}%::scoreboard::%{_j}%::*}
+				loop {scoreboard::%{scoreboard::%player%}%::scoreboard::%{_j}%::*}:
+					evaluate "set {_s} to ""%loop-value%"""
+					set the text of id "%player%Slot%{_slot}%" to "%{_d::%{_slot}%}%%{_s}%"
+					subtract 1 from {_slot}					
+				if {_i} + 1 > size of {scoreboard::%{scoreboard::%player%}%::title::*}:
+					delete {_i}	
+				if {_j} + 1 > size of indexes of {scoreboard::%{scoreboard::%player%}%::scoreboard::*}:
+					delete {_j}								
+		wait 4 tick #스코어보드가 업데이트 되는 시간.

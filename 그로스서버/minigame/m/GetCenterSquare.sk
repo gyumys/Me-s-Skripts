@@ -1,0 +1,27 @@
+#사각형의 중심좌표를찾아내는 스크립트.
+#로비나 스폰장소를 중심으로 하는 경우가많은데 찾기 편하게 할려고 만듬.
+on unload:
+	delete {gcs::*}
+command /네모중심구하기:
+	permission: op
+	trigger:
+		if {gcs::%player%} is set:
+			send "&coff"
+			delete {gcs::%player%}
+			delete {gcs::%player%::*}
+		else:
+			send "&aon"
+			set {gcs::%player%} to true
+on leftclick:
+	{gcs::%player%} is true
+	cancel event
+	set {gcs::%player%::x1} to event-block's location's x-coordinate
+	set {gcs::%player%::z1} to event-block's location's z-coordinate			
+	send "&6x: &f%({gcs::%player%::x1}+{gcs::%player%::x2}) / 2%, &6z: &f%({gcs::%player%::z1}+{gcs::%player%::z2}) / 2% &a[ (%{gcs::%player%::x1}%&a,%{gcs::%player%::z1}%&a), (%{gcs::%player%::x2}%&a,%{gcs::%player%::z2}%&a) ] &e의 중심" to player
+on rightclick:
+	{gcs::%player%} is true
+	cancel event
+	set {gcs::%player%::x2} to event-block's location's x-coordinate
+	set {gcs::%player%::z2} to event-block's location's z-coordinate
+	send "&6x: &f%({gcs::%player%::x1}+{gcs::%player%::x2}) / 2%, &6z: &f%({gcs::%player%::z1}+{gcs::%player%::z2}) / 2% &a[ (%{gcs::%player%::x1}%&a,%{gcs::%player%::z1}%&a), (%{gcs::%player%::x2}%&a,%{gcs::%player%::z2}%&a) ] &e의 중심" to player
+	

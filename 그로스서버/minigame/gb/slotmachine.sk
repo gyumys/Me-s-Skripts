@@ -1,0 +1,75 @@
+#슬롯머신 SlotMachine
+
+on load:
+	set {game::gb::slot.lever.loc} to location(-19.5,64.5,237.5,world("gamble"))
+	
+	set {game::gb::slot.1.loc} to location(-23.5,72.5,236.5,world("gamble"))
+	set {game::gb::slot.2.loc} to location(-22.5,72.5,236.5,world("gamble"))
+	set {game::gb::slot.3.loc} to location(-21.5,72.5,236.5,world("gamble"))
+	
+	set {game::gb::slot.slot1.1.loc} to location(-23.5,67.5,235.5,world("gamble"))
+	set {game::gb::slot.slot2.1.loc} to location(-23.5,66.5,234.5,world("gamble"))
+	set {game::gb::slot.slot3.1.loc} to location(-23.5,67.5,233.5,world("gamble"))
+	set {game::gb::slot.slot4.1.loc} to location(-23.5,68.5,234.5,world("gamble"))
+
+	set {game::gb::slot.slot1.2.loc} to location(-22.5,67.5,235.5,world("gamble"))
+	set {game::gb::slot.slot2.2.loc} to location(-22.5,66.5,234.5,world("gamble"))
+	set {game::gb::slot.slot3.2.loc} to location(-22.5,67.5,233.5,world("gamble"))
+	set {game::gb::slot.slot4.2.loc} to location(-22.5,68.5,234.5,world("gamble"))
+
+	set {game::gb::slot.slot1.3.loc} to location(-21.5,67.5,235.5,world("gamble"))
+	set {game::gb::slot.slot2.3.loc} to location(-21.5,66.5,234.5,world("gamble"))
+	set {game::gb::slot.slot3.3.loc} to location(-21.5,67.5,233.5,world("gamble"))
+	set {game::gb::slot.slot4.3.loc} to location(-21.5,68.5,234.5,world("gamble"))	
+	set block at {game::gb::slot.lever.loc} to {block::south.redstone.lever}	
+on rightclick on redstone lever:
+	event-block's location is {game::gb::slot.lever.loc}
+	if {game::gb::slot.start} is set:
+		send action bar "이미 룰렛이 돌려지고 있습니다." to player
+		cancel event
+		stop
+	if player's money < 15:	
+		send "&e15코인이 부족해 게임에 참여할 수 없습니다."
+		cancel event
+		stop
+	remove 15 from player's money	
+	add 1 to {data::playerdata::%uuid of player%::record.slot1.start}
+	play sound "entity.arrow.hit_player" with volume 1 with pitch 1 to player	
+	loop 3 times:
+		set block at {game::gb::slot.%loop-num%.loc} to white stained glass block	
+	set {game::gb::slot.start} to player
+	wait 4 tick
+	set {_b} to magenta glazed terracotta block
+	set data of {_b} to 1
+	loop 3 times:
+		set block at {game::gb::slot.%loop-num%.loc} to {_b}
+		play sound "entity.arrow.hit_player" with volume 1 with pitch 1 to player	
+		wait 4 tick
+		loop random integer from 10 and 20 times:
+			loop 4 times:
+				set {_b::%loop-num-3%} to type of block at {game::gb::slot.slot%loop-num-3%.%loop-num-1%.loc}
+			loop 4 times:	
+				set {_n} to loop-num-3 + 1
+				if {_n} is 5:
+					set {_n} to 1
+				set block at {game::gb::slot.slot%loop-num-3%.%loop-num-1%.loc} to {_b::%{_n}%}
+			play sound "entity.armorstand.break" with volume 1 with pitch 1 to player	
+			wait a tick
+			#play sound "entity.armorstand.break" with volume 1 with pitch 1 to player	
+			#wait a tick
+	if type of block at {game::gb::slot.slot1.1.loc} is type of block at {game::gb::slot.slot1.2.loc}:
+		if type of block at {game::gb::slot.slot1.2.loc} is type of block at {game::gb::slot.slot1.3.loc}:
+			add 1 to {data::playerdata::%uuid of player%::record.slot1.win}
+			send title "&a당첨!" with subtitle "&a300코인을 획득하였습니다!" to player
+			add 300 to player's money
+			play sound "ui.toast.challenge_complete" with volume 1 with pitch 2 to player
+			set {_a} to true
+	if {_a} is not set:
+		send title "&c꽝.." with subtitle "&c다음 기회를 노려보세요!" to player
+		play sound "entity.arrow.hit_player" with volume 1 with pitch 0 to player
+	loop 3 times:
+		set block at {game::gb::slot.%loop-num%.loc} to gold block
+	delete {game::gb::slot.start}
+	set {_b} to redstone lever
+	set data of {_b} to 3
+	set event-block to {_b}

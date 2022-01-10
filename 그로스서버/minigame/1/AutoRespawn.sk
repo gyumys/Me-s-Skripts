@@ -1,0 +1,2 @@
+on death of player: #즉시리스폰
+	#force player to respawn

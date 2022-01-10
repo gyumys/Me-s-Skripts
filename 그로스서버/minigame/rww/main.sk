@@ -1,0 +1,18 @@
+function StartRww(name:text):
+	send title "&a3초뒤 낙하합니다." with subtitle "&f시작시 스페이스(점프키)를 눌러 날 수 있습니다." to {game::%{_name}%::join::*}
+	play sound "entity.arrow.hit_player" with volume 1 with pitch 1 to {game::%{_name}%::join::*}
+	wait a seconds
+	send title "&62초뒤 낙하합니다." with subtitle "&f시작시 스페이스(점프키)를 눌러 날 수 있습니다." to {game::%{_name}%::join::*}
+	play sound "entity.arrow.hit_player" with volume 1 with pitch 1 to {game::%{_name}%::join::*}
+	wait a seconds
+	send title "&c1초뒤 낙하합니다." with subtitle "&f시작시 스페이스(점프키)를 눌러 날 수 있습니다." to {game::%{_name}%::join::*}
+	play sound "entity.arrow.hit_player" with volume 1 with pitch 1 to {game::%{_name}%::join::*}
+	wait a seconds
+	send title "&c낙하합니다." with subtitle "&f스페이스(점프키)를 눌러 날아가세요." to {game::%{_name}%::join::*}
+	play sound "entity.player.levelup" with volume 1 with pitch 1 to {game::%{_name}%::join::*}
+	loop {game::%{_name}%::join::*}:
+		set loop-value's chestplate to elytra
+	#execute {worldcommander::random_weapon_war} command "//pos1 53,120,259"
+	#execute {worldcommander::random_weapon_war} command "//pos2 121,114,250"
+	wait 10 seconds
+	StopGame({_name})

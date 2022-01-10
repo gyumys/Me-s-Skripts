@@ -1,0 +1,77 @@
+options:
+	c: &c&f&a&d&e #드랍방지, 클릭방지 코드 (아이템 이름에 사용.)
+	a: &7[ &fGross &7]&f
+on load:
+	set {game::mc::loc1} to location(187.5, 63.5, 213.5, world("minechess"))
+function StartMc():
+	teleport {game::mc::join::*} to {game::mc::loc1}
+	teleport {game::mc::join::*} to {game::mc::loc1}
+	send "&e10초후 무적이 해제됩니다." to {game::mc::join::*}
+	loop {game::mc::join::*}:
+		set {_p} to loop-value
+		set slot 0 of {_p}'s inventory to clock named "{@c}&e새로고침&7(우클릭)" with lore "&7우클릭시 상"
+		make {_p} fly
+	while {game::mc::join::*} is set:
+		if size of {game::mc::join::*} < 2:
+			send "%nl% &6>&c> &e%{game::mc::join::*}%&e님이 &c개미전쟁(개인전)&e에서 승리하였습니다. %nl%" to players where [input's world is world("defense")] and {game::mc::join::*}	
+			set {game::mc::join::*} to {game::mc::join::*}
+			set {_u} to uuid of {game::mc::join::1}
+			add 1 to {data::playerdata::%{_u}%::record.mc.win}
+			StopGame("mc")
+			stop
+		add 1 to {_count}
+		wait a seconds
+	StopGame("mc")		
+on rightclick with stick:
+	cancel event
+	clicked entity is not set
+	if {game::mc::sel::%player%} is set:
+		play sound "ui.button.click" with pitch 2 to player
+		delete {game::mc::sel::%player%}
+		stop
+	if "%target entity%" is "Test":
+		play sound "ui.button.click" with pitch 2 to player
+		set {game::mc::sel::%player%} to target entity
+		set {_t} to target entity
+		make {game::mc::sel::%player%} fly
+		set {_i} to distance between target entity and player
+		while {game::mc::sel::%player%} is set:
+			set {_loc} to location {_i} infront of player's location
+			if {_loc}'s y-coord < 64:
+				set {_loc}'s y-coord to 64
+			set {_loc}'s pitch to {_t}'s pitch
+			set {_loc}'s yaw to {_t}'s yaw
+			teleport {_t} to {_loc}
+			set {_loc::*} to GetBoardMapping({game::mc::loc1})
+			set block at {_b} to block behind {_b}
+			set {_a} to 9999
+			loop {_loc::*}:
+				set block at loop-value to lapis lazuli block
+				if distance between loop-value and {_loc} < {_a}:
+					set {_a} to distance between loop-value and {_loc}
+					set block at {_b} to lapis lazuli block
+					set {_b} to loop-value
+			set block at {_b} to emerald block
+			wait a tick
+		loop {_loc::*}:	
+			set block at loop-value to block behind loop-value
+		set block at {_b} to block behind {_b}
+		teleport {_t} to location 0.5 up {_b}
+function GetBoardMapping(l:location) :: locations:
+	set {_lb} to {_l}
+	add -15 to {_l}'s x-coord
+	add -5 to {_l}'s z-coord
+	add 12 to {_lb}'s x-coord
+	add -9 to {_lb}'s z-coord
+	loop 10 times:
+		#set block at {_l} to block behind {_l}
+		add {_l} to {_l::*}
+		add 3 to {_l}'s x-coord
+	loop 4 times:
+		loop 8 times:
+			add {_lb} to {_l::*}
+			#set block at {_lb} to block behind {_lb}
+			add -3 to {_lb}'s x-coord
+		add -3 to {_lb}'s z-coord	
+		add 24 to {_lb}'s x-coord
+	return {_l::*}	

@@ -1,0 +1,14 @@
+#경험치 획득은 미니게임 플레이도중 특정이벤트에서 발생합니다.
+
+function UpExp(uuid:text,i:integer):
+	add {_i} to {data::playerdata::%{_uuid}%::exp}
+#=== 전체레벨 세팅 ===
+on load:
+	set {game::level::main::0} to 15
+	set {game::level::main::1} to 25
+	set {game::level::main::2} to 40
+	set {game::level::main::3} to 55
+	set {game::level::main::4} to 90
+	set {game::level::main::5} to 115
+	set {game::level::main::6} to 140
+	

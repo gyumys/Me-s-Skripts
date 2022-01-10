@@ -1,0 +1,59 @@
+on join:
+	if {user::name::%uuid of player%} is not set:
+		log "[닉네임최초등록 %uuid of player% ] %name of player%" to "nick"
+		set {data::playerdata::%uuid of player%::firstjoin} to now formatted with "YYYY-MM-dd HH:mm"
+		set {data::playerdata::%uuid of player%::lastjoin} to now formatted with "YYYY-MM-dd HH:mm"
+		set yaml value "%uuid of player%.%name of player%" from {fileloc::globalusers} to now formatted with "YYYY-MM-dd HH:mm"
+		set yaml value "%uuid of player%.%name of player%" from {fileloc::users} to now formatted with "YYYY-MM-dd HH:mm"
+	else if {user::name::%uuid of player%} is not name of player:
+		log "[닉네임변경 %uuid of player% ] %{user::name::%uuid of player%}% -> %name of player%" to "nick"
+	set {user::name::%uuid of player%} to name of player
+	set {user::uuid::%name of player%} to uuid of player
+	loop "level" and "exp":
+		if {data::playerdata::%uuid of player%::%loop-value%} is not set:
+			set {data::playerdata::%uuid of player%::%loop-value%} to 0
+on quit:
+	set {data::playerdata::%uuid of player%::lastjoin} to now formatted with "YYYY-MM-dd HH:mm"
+function OpenProfile(p:player,t:text):
+	set {_t} to {_t} parsed as offlineplayer #바로 플레이어 타입으로 값을 받아오면 오프라인인 플레이어는 작동이안되는 버그가있음.
+	set {_u} to uuid of {_t}
+	set {_gui} to chest inventory with 3 rows named "&e&l%{_t}% &f님의 프로필"
+	if {_p} is {_t}:
+		if {data::playerdata::%{_u}%::profile.public} is false:
+			set slot 17 of {_gui} to barrier block named "&e&l프로필 설정" with lore "&7현재 : &c비공개", "&7클릭시 프로필을 &b공개&7로 전환합니다." and "&7프로필이 공개되면 다른플레이어가 프로필을 볼수 있습니다."
+		else:
+			set slot 17 of {_gui} to structure void named "&e&l프로필 설정" with lore "&7현재 : &b공개", "&7클릭시 프로필을 &c비공개&7로 전환합니다." and "&7프로필이 비공개되면 다른플레이어는 프로필을 볼수 없게됩니다."		
+	else if {data::playerdata::%{_u}%::profile.public} is false:
+		send "&e%{_t}%님의 프로필은 비공개 상태이므로 볼수 없습니다." to {_p}
+		stop	
+	set slot integers from 0 and 8 of {_gui} to dark gray stained glass pane
+	set slot 9 of {_gui} to skull of {_t} named "&e&l%{_t}%" with lore "&f레벨 : %{data::playerdata::%{_u}%::level}%", "&f경험치 : %{data::playerdata::%{_u}%::level}% / %{game::level::main::%{data::playerdata::%{_u}%::level}%}%", "", "&f첫 접속 : %{data::playerdata::%{_u}%::firstjoin}%", "&f마지막 접속 : %{data::playerdata::%{_u}%::lastjoin}%"
+	set slot 10 of {_gui} to sign item named "&6&l전적" with lore "&7클릭시 %{_t}%&7님의 전적을 확인합니다."
+	set slot integers from 18 and 26 of {_gui} to dark gray stained glass pane
+	open {_gui} to {_p}	
+function OpenProfileRecord(p:player,t:player):
+	set {_gui} to chest inventory with 6 rows named "&e&l%{_t}% &f님의 전적"
+	set {_u} to uuid of {_t}
+	set slot 0 of {_gui} to dirt named "&6&l개미전쟁" with lore "&7우승 : &b%{data::playerdata::%{_u}%::record.aw.win}%", "&7패배 : &b%{data::playerdata::%{_u}%::record.aw.lose}%", "&7탈주 : &b%{data::playerdata::%{_u}%::record.aw.quit}%", "", "&7킬 : &b%{data::playerdata::%{_u}%::record.aw.kill}%", "&7데스 : &b%{data::playerdata::%{_u}%::record.aw.death}%", "&7킬/데스 : &b%{data::playerdata::%{_u}%::record.aw.kill}/{data::playerdata::%{_u}%::record.aw.death} * 100%%%"
+	set slot 1 of {_gui} to gold block named "&e&l도박장" with lore "&7룰렛 시도 : &b%{data::playerdata::%{_u}%::record.slot1.start}%", "&7룰렛 소비 : &b%{data::playerdata::%{_u}%::record.slot1.start} * 15%&7코인", "&7룰렛 당첨 : &b%{data::playerdata::%{_u}%::record.slot1.win} * 300%&7코인"
+	set slot 2 of {_gui} to grass block named "&a&l로비" with lore "&7퀴즈 정답 : &b%{data::playerdata::%{_u}%::record.lobby.quizr}%회" and "&7점프맵 클리어 : &b0회"
+	open {_gui} to {_p}
+on inventory click:
+	if name of player's top inventory contains " &f님의 프로필":
+		set {_t} to uncolored name of player's top inventory
+		replace " 님의 프로필" with "" in {_t}
+		set {_t} to "%{_t}%" parsed as offlineplayer
+		set {_u} to uuid of {_t}
+		cancel event
+		if index of event-slot is 10:
+			OpenProfileRecord(player,{_t})
+		else if index of event-slot is 17:
+			if {data::playerdata::%{_u}%::profile.public} is true:
+				set {data::playerdata::%{_u}%::profile.public} to false
+			else:
+				set {data::playerdata::%{_u}%::profile.public} to true
+			OpenProfile(player,"%{_t}%")
+command /프로필 [<text=%name of player%>]:
+	aliases: profile, 정보, info
+	trigger:
+		OpenProfile(player,arg-1)

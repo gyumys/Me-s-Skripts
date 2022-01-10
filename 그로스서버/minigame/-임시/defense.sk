@@ -1,0 +1,58 @@
+options:
+	a: &8[ &7DeFense &8]&f
+function SetDefenseItem(item:item, dur:integer, nbt: text) :: item:	
+	set {_i} to type of {_item}
+	if {_dur} is not 0:
+		add {_dur} to {_i}'s durability
+	add nbt of {_item} to nbt of {_i}	
+	add "%{_nbt}%" to nbt of {_i}	
+	#if "%name of {_item}%" is not "<none>":
+		#set name of {_i} to name of {_item}		
+	#broadcast "%lore of {_item}%"	
+	return {_i}
+on load:
+	set {defense.item::라이터} to flint and steel named "&c라이터" with lore "&7함정", "" and "&7불을 설치해 지상 유닛을 불태웁니다."
+	set {defense.item::라이터} to SetDefenseItem({defense.item::라이터}, 64, "{CanPlaceOn:[""minecraft:quartz_block""]}")
+	set {defense.item::회수하기} to diamond shovel named "&c회수하기" with lore "", "&7이 아이템을 들고 벽을 우클릭하면 회수됩니다." and "&7유닛을 우클릭하면 유닛이 회수됩니다."
+	set {defense.item::회수하기} to SetDefenseItem({defense.item::회수하기}, 0, "{HideFlags:127}")
+	set {defense.item::벽} to iron block named "&b벽" with lore "", "&7벽위에 유닛을 설치하거나 적의 진로를 막을 수 있습니다." and "&7적의 진로가 완전히 막힐경우 벽과 유닛이 회수됩니다."
+	set {defense.item::라운드} to diamond sword named "&f1라운드 시작" with lore "" and "&7우클릭시 1라운드를 시작합니다."
+	set {defense.loc::blue} to location(210.5, 64, 262.5, world("defense"), 180)	
+	set {defense.loc::red} to location(210.5, 64, 240.5, world("defense"), 0)
+	
+on unload:
+	delete {defense.item::*}
+	delete {defense.loc::*}
+command /디펜스 [<text>]:
+	trigger:
+		if arg 1 is not set:
+			send "{@a} /디펜스 시작"
+			send "{@a} /디펜스 종료"
+			stop
+		if arg 1 is "시작":
+			RunDefense(player)
+		if arg 1 is "아이템":
+			set {_gui} to chest inventory with 6 row with name "&7DeFense Item"
+			add {defense.item::*} to {_gui}
+			open {_gui} to player
+function RunDefense(p:player):
+	set {_p}'s gamemode to adventure
+	make {_p} fly
+	teleport {_p} to {defense.loc::blue}
+	execute console command "effect %{_p}% minecraft:saturation 999999 4"
+	execute console command "effect %{_p}% minecraft:night_vision 999999 4"
+	clear {_p}'s inventory
+	set {_p}'s money to 100
+	send title "a" to {_p}
+function RunRound(r:integer):
+	set {_loc} to {defense.loc::red}
+on drop:
+	cancel event
+on rightclick:
+	if name of event-item contains "라운드 시작":
+		set {_v1} to vector of player's location
+		set {_name} to uncolored name of event-item
+		replace all "라운드 시작" with "" in {_name}
+		RunRound(1)
+			
+			

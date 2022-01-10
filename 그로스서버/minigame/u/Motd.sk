@@ -1,0 +1,2 @@
+on server list ping:
+	set motd to "&6&l[ &6====&e====&f=== &6[ &e&l☣ &6>&e>&f> &6&lGross Server &e[1.12.2] &f<&e<&6< &e&l☣ &6] &f===&e====&6==== &6&l] &c☣ &fRust &c☣, &6◈ &f마인팜 &6◈, &b◎ &f미니게임 &b◎ &7&lPlay in &f&lGross.fxh.kr"

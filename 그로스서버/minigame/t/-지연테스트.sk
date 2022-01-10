@@ -1,0 +1,15 @@
+# # on load:
+	# # set {game::test::*} to integers from 0 and 1000
+# command /지연테스트:
+	# trigger:
+		# set {_now} to now
+		# loop 1000 times:
+			# #1000번 루프해서 지연거의없음.
+			
+			# #set {_a::%loop-num%} to {game::test::%loop-num%}
+			# #set {_a::%loop-num%} to yaml value "lastjoin" from "pd\%uuid of player%"
+			
+			# #1000번 루프해서 평균지연 1.174초
+			# #set {_a::%loop-num%} to yaml value "cash" from file "C:\Users\USER01\Desktop\Gross Server\DB\Global\PlayerData\0e45c7f4-ab85-4e5f-98ea-56463c57a0a0.yaml"
+			
+		# broadcast "%difference between now and {_now}%"

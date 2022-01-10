@@ -1,0 +1,21 @@
+# on spawn:
+	# event-entity is in world("world")
+	# if event-entity is giant:
+		# apply invisibility 1 without any particles to event-entity for 999 days
+		# set event-entity's tool to {item::balloon}
+	# else if event-entity is chicken:	
+		# make event-entity leash ops
+		# apply invisibility 1 without any particles to event-entity for 999 days
+# on load:
+	# delete {balloon}
+	# kill Giants in world("world")
+	# kill chickens in world("world")
+	# delete {item::*}
+	# execute console command "/summon minecraft:giant 138 64.5 150.5 {NoGravity:1b,Invulnerable:true,NoAI:true}"
+	# execute console command "/summon minecraft:chicken 136.5 71.5 155.4 {NoGravity:1b,Invulnerable:true,NoAI:true}"
+# command /leash:
+	# trigger:
+		# leash the player to the target entity	
+# command /balloon:
+	# trigger:
+		# set {item::balloon} to tool

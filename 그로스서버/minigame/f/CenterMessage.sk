@@ -1,0 +1,57 @@
+# command /test [<text>] [<integer>]: #특정메세지를 320/n 번 반복하여 출력하여 자간을 알아낼수있음.
+	# trigger:
+		# set {_a} to "%arg-1%"
+		# if arg-1 is "\s":
+			# set {_a} to " "		
+		# loop 320/arg-2 times:
+			# if {_t} is not set:
+				# set {_t} to {_a}
+			# else:
+				# set {_t} to "%{_t}%%{_a}%"
+		# broadcast "%{_t}%&c!"
+# command /test2 [<text>]: #예문.
+	# trigger:
+		# send "%GetCenterText(arg-1,320)%"
+on load: #자간 불러오기.
+	set {center.setting::f} to 3
+	set {center.setting::I} to 3
+	set {center.setting::i} to 3
+	set {center.setting::j} to 3
+	set {center.setting::l} to 3
+	set {center.setting::1} to 3
+	set {center.setting::t} to 3
+	set {center.setting::!} to 1
+	set {center.setting::(} to 2
+	set {center.setting::)} to 2
+	set {_a::*} to "{" and "}"
+	set {center.setting::%{_a::1}%} to 2
+	set {center.setting::%{_a::2}%} to 2	
+	set {center.setting::,} to 2
+on unload:
+	delete {center.setting::*}
+function GetCenterText(t:text,width:integer) :: text: #메세지를 폭의 중간에 출력하기.
+	set {_void.text} to " "
+	set {_void.size} to {_width}/2 #공백은 왼쪽에만 있으면되니 나누기 2를 해줌.
+	set {_a::*} to {_t} split by ""
+	loop {_a::*}: #자간 설정하기.
+		set {_a} to "%loop-value%"
+		if {center.setting::%{_a}%} is set:
+			set {_px} to {center.setting::%{_a}%}
+		else if loop-value match "[가-힣]*":
+			set {_px} to 8
+		else:
+			set {_px} to 4 #나머지 자간들은 보통 4픽셀
+		remove {_px}/2 from {_void.size}
+	if {_void.size}/4 < -1:
+		return "&c[Error] GetCenterText 길이초과"
+		stop
+	loop round down ({_void.size} / 4) times: #공백크기를 " "의 자간인 4로 나누어줌.
+		if {_void} is not set:
+			set {_void} to {_void.text}
+		else:
+			set {_void} to "%{_void}%%{_void.text}%"
+	if {_void} is set:
+		return "&7%{_void}%&f%colored {_t}%"
+	else:
+		return "&f%colored {_t}%"
+		

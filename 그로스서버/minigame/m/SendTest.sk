@@ -1,0 +1,7 @@
+command /RunSk [<text>]:
+	permission: op
+	trigger:
+		evaluate "%arg-1%"
+on chat:
+	player is op
+	set message to colored message

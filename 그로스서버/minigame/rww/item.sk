@@ -1,0 +1,26 @@
+function GetRwwRandomItem() :: items:
+	add random item of {game::rww::item::*} to {_item::*}
+	return {_item::*}
+on rightclick on chest:
+	if {game::%player%::playing} is "rww": #테스트를위해 임시로 not을붙임 나중에 지우기
+		set event-block to air
+		play sound "block.chest.open" with volume 1 with pitch 0 to player
+		drop GetRwwRandomItem() at event-block
+		cancel event
+#등급 일반 -> 희귀 -> 전설 -> 신화 -> 유일
+
+on rightclick:
+	if tool is ender eyes:
+		cancel event
+		set {_a} to tool
+		set tool to air
+		wait a tick
+		set tool to {_a}
+on load:
+	set {game::rww::item::녹슨 철검} to iron sword named "&8녹슨 철검" with lore "&7등급 : &7일반" and "&7공격력 +3" without nbt
+	set {game::rww::item::녹슨 철검::damage} to 3
+	set {game::rww::item::체력 회복물약} to potion of strong health named "&8체력 회복물약" with lore "&7등급 : 일반", "&7즉시 5의 체력을 회복합니다. &6(섭취시 사용)" and " &7* 한번 사용하면 아이템이 사라집니다." without nbt
+	set {game::rww::item::메두사의 눈} to ender eyes named "&6메두사의 눈" with lore "&7등급 : &e신화", "&7바라보고 있는 적을 1.5초간 속박시킵니다. &6(우클릭시 사용)", "&7사용시 소유자를 바라보고있는 적을 추가로 1.5초간 속박시킵니다.", "&C(쿨타임 30초)"
+on unload:
+	delete {game::rww::item::*}
+		

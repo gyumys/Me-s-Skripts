@@ -1,0 +1,13 @@
+function getGage(g:text,p:number,c.1:text,c2:text) :: text: #! 문자열에 비율값만큼 색을 칠함 (이 함수는 브혼님의 허락을 받고 가져온 함수입니다.)
+	set {_l} to length of {_g}
+	set {_a} to round down ( {_p} * {_l} )
+	set {_g::1} to "&c%{_c.1}%%first {_a} character of {_g}%"
+	set {_g::2} to "&f%{_c2}%%last {_l} - {_a} character of {_g}%"
+	loop {_g::*}:
+		uncolored loop-value is "<none>"
+		set {_g::%loop-index%} to ""
+	set {_r} to "%{_g::1}%%{_g::2}%"
+	return {_r}
+# on load: # 예제. 출력시 게이지가 반만큼 차있음.
+	# set {_a} to getGage("||||||||||||||||||||||||||||||", 1/2, "&7", "&f")
+	# broadcast "%{_a}%"

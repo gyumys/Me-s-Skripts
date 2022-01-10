@@ -1,0 +1,17 @@
+on load:	
+	delete {block::*} #해당스크립트가 쓸데없기에 제거함.
+	stop
+	set {_blocks::south.redstone.lever} to true
+	set {_blocks::south.power.redstone.lever} to true
+	loop {_blocks::*}:
+		set data of {block::%loop-index%} to {block::%loop-index%.data}
+		if {block::%loop-index%} is not set:
+			send "&c[%script%] {block::%loop-index%} 의 설정이 필요합니다." to console
+command /블럭저장 [<text>]:
+	trigger:
+		if arg 1 is not set:
+			send "&e/블럭저장 변수이름"
+			stop
+		set {block::%arg-1%} to type of player's target block
+		set {block::%arg-1%.data} to data of player's target block
+		send "{block::%arg-1%}에 %player's target block%을 담았습니다."

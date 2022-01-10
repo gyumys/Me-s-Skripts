@@ -1,0 +1,11 @@
+command /로어설정 [<integer>] [<text>]:
+	permission: ItemSet.Lore
+	trigger:
+		set {_lore} to arg-2
+		replace all "\n" with "" in {_lore}
+		replace all "\s" with " " in {_lore}
+		set line arg-1 of lore of player's tool to colored {_lore}
+command /이름설정 [<text>]:
+	permission: ItemSet.Name
+	trigger:
+		set name of player's tool to colored arg-1

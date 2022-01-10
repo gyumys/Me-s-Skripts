@@ -1,0 +1,34 @@
+on load:
+	SetWorldCommander()
+function SetWorldCommander():
+	loop all worlds:
+		{worldcommander::%loop-value-1%} is not set
+		execute console command "npc remove %loop-world%@WC"
+		execute console command "npc create %loop-world%@WC --at 0,0,0,%loop-world%"
+		loop entities in loop-world:
+			"%type of loop-value-2%" is "player"
+			name of loop-value-2 contains "@WC"
+			op loop-value-2
+			set {worldcommander::%loop-value-1%} to loop-value-2
+	add 1 to {worldcommander.count}		
+	if {worldcommander.count} > 4: #무한루프 방지
+		delete {worldcommander.count}
+		stop
+	if size of all worlds is not size of {worldcommander::*}: #로드되지않는 버그? 같은게있어 모두 로드되지않았을때 리로드하게함.		
+		SetWorldCommander()
+	else:	
+		delete {worldcommander.count}
+			
+on unload:
+	delete {worldcommander::*}
+
+command /월드커맨더 [<text>] [<text>]:
+	permission: op
+	trigger:
+		if arg 1 is not set:
+			send "&f/월드커맨더 [월드이름] [명령어]"
+			send "&f=== 월드커맨더 ==="
+			loop worlds:
+				send "%loop-world% %{worldcommander::%loop-world%}%"
+		else:
+			execute {worldcommander::%arg-1%} command arg-2

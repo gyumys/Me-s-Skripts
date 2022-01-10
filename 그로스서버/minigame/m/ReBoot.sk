@@ -1,0 +1,9 @@
+#서버 종료시 /서버종료 입력후 버킷을 종료함.
+#서버 시작시 버킷을 키고 /서버시작 을 입력함.
+command /서버종료:
+	trigger:
+		execute console command "whitelist on"
+command /서버시작:
+	trigger:	
+		execute console command "whitelist off"
+		

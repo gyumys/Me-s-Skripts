@@ -1,0 +1,35 @@
+options:
+	a: &F[ &6Quiz &f]
+	p: 25 #정답을 맞췄을때 획득하는 포인트.
+on load:
+	set {game::quiz::지리::1::*} to "대한민국의 수도는? [OO]" and "서울"
+	set {game::quiz::넌센스::1::*} to "트랜스포머가 여친이없는 이유는? [OOO]" and "차여서"
+every 10 seconds:
+	if {game::quiz.now} is not set:
+		set {_t} to random text of indexes of {game::quiz::*}
+		set {_i} to random text of indexes of {game::quiz::%{_t}%::*}
+		send "%nl%{@a} &6문제 &7: &e%{game::quiz::%{_t}%::%{_i}%::1}%" to players where [input's world is world("world")]
+		send "{@a} &6주제 &7: &e%{_t}% " to players where [input's world is world("world")]
+		send "{@a} &e정답을 &a채팅창&e 또는 &a/정답 [내용]&e 으로 입력하세요." to players where [input's world is world("world")]
+		set {game::quiz.now} to {game::quiz::%{_t}%::%{_i}%::2}
+	else:
+		send "{@a} &e시간이 지나 퀴즈가 종료되었습니다. 정답 : %{game::quiz.now}%" to players where [input's world is world("world")]
+		delete {game::quiz.now}
+command /정답 [<text>]:
+	trigger:
+		player's world is world("world")
+		if arg-1 is {game::quiz.now}:
+			RightQuiz(player)	
+		else:
+			send "{@a} &e삐빅! 오답입니다."
+on chat:
+	player's world is world("world")
+	if message is {game::quiz.now}:
+		cancel event
+		RightQuiz(player)
+function RightQuiz(p:player):
+	set {_u} to uuid of {_p}
+	add 1 to {data::playerdata::%{_u}%::record.lobby.quizr}
+	send "{@a} &a%{_p}% &e님이 정답을 맞추어 {@p}포인트를 획득하였습니다." to players where [input's world is world("world")]
+	add {@p} to {_p}'s money
+	delete {game::quiz.now}	

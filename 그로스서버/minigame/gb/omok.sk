@@ -1,0 +1,144 @@
+function OpenMinigameMaster(p:player):
+	set {_gui} to chest inventory with 6 rows named "&e&l미니게임 마스터"
+	set slot 0 of {_gui} to black wool named "&f&l사목" with lore "&7현재인원 : &6%size of {game::4mok1::join::*}%/%{game::4mok1::maxjoin}%", "&7최소인원 : &b%{game::4mok1::minijoin}%", "", "&7참가비 : &e100코인", "&7승리시 &b200&7코인 획득.", "", "&a좌클릭시 해당게임에 참여합니다." and "&6우클릭시 해당게임에 대한 설명을 확인합니다."
+	open {_gui} to {_p}
+function Start4mok():
+	send title "&7&l사목" with subtitle "&f&l선공을 정합니다." to {game::4mok1::join::*}
+	wait 4 tick
+	set {_p::*} to {game::4mok1::join::*}
+	set {_p} to random player of {_p::*} 
+	remove {_p} from {_p::*}
+on rightclick on player:
+	if name of event-entity is "&e&l미니게임 마스터":
+		OpenMinigameMaster(player)		
+on inventory click:
+	if name of player's top inventory is "&e&l미니게임 마스터":
+		cancel event
+		event-inventory is player's top inventory
+		if index of event-slot is 0:
+			if "%click type%" contains "left":
+				if player's money < 100:
+					send "&e참가비 100원이 부족해 게임에 참여할 수 없습니다."
+					close player's inventory
+					stop
+				JoinGame(player,"4mok1")
+			else if "%click type%" contains "right":
+				set {_gui} to chest inventory with 1 rows named "&f&l사목 - 설명"
+				set slot integers from 0 and 8 of {_gui} to book named "&cX"
+				set slot 0 of {_gui} to enchanted book named "&d&l룰" with lore "&f게임이 시작되면 흑(선공)/백 이 정해지며 GUI가 열립니다.", "&fGUI가 열리면 돌을두어 가로,세로, 대각선 으로 4개가 연결이되면", "&f승리하는 게임이며, 돌은 두면 아래방향으로 떨어집니다."
+				set slot 1 of {_gui} to enchanted book named "&e&l테스트" with lore "&f클릭시 게임 시작시 열리는 GUI가 오픈됩니다.", "&f(일부기능 작동함.)"
+				open {_gui} to player			
+	else if name of player's top inventory is "&f&l사목 - 테스트":
+		cancel event
+		event-inventory is player's top inventory
+		event-item is redstone lever
+		set {_slot} to index of event-slot	
+		if slot {_slot}+9 of player's top inventory is not white stained glass pane:
+			stop
+		set {_t} to name of event-item	
+		if name of event-item is "&8흑돌 &f두기":
+			replace event-item with redstone lever named "&f돌 두는중" with lore "&f다음턴 &f백돌" in player's top inventory
+			set {_n} to redstone lever named "&f백돌 &f두기"
+			set {_i} to black wool
+		else if name of event-item is "&f백돌 &f두기":
+			set {_n} to redstone lever named "&8흑돌 &f두기"
+			replace event-item with redstone lever named "&f돌 두는중" with lore "&f다음턴 &8흑돌" in player's top inventory
+			set {_i} to white wool
+		else:
+			stop
+		loop 6 times:
+			add 9 to {_slot}
+			if slot {_slot} of player's top inventory is white stained glass pane:
+				set slot {_slot} of player's top inventory to {_i}
+				set {_last} to {_slot}
+				if slot {_slot}-9 of player's top inventory is wool:
+					set slot {_slot}-9 of player's top inventory to white stained glass pane
+			else:
+				stop loop
+			wait 2 tick
+		loop "0,1|0,-1", "1,0|-1,0", "1,1|-1,-1" and "-1,1|1,-1": #세로 |, 가로 -, 오른쪽 대각선 /, 왼쪽 대각선 \
+			set {_a} to loop-value
+			set {_a::*} to {_a} split by "|"
+			set {_j} to 0
+			delete {_i::*}
+			loop {_a::*}:
+				set {_l} to {_last}
+				set {_b} to loop-value-2
+				set {_b::*} to {_b} split by ","
+				loop 3 times:
+					add "%{_b::1}%" parsed as integer to {_l}
+					add "%{_b::2}%" parsed as integer * 9 to {_l}
+					if type of slot {_l} of player's top inventory is {_i}:						
+						add 1 to {_j}
+						add {_l} to {_i::*}
+						if {_j} > 2:
+							stop loop
+					else:
+						stop loop		
+			if {_j} > 2:
+				set {_i::0} to {_last}
+				loop {_i::*}:
+					play sound "entity.arrow.hit_player" with volume 1 with pitch 1 to player
+					set slot loop-value-2 of player's top inventory to glowstone block
+					wait 8 tick	
+				play sound "entity.player.levelup" with volume 1 with pitch 1 to player
+				wait 4 tick
+				close player's inventory
+				replace " &f두기" with "" in {_t}
+				send "%{_t}% &e이 승리하였습니다."
+				stop
+		if name of slot 1 of player's top inventory is "&f돌 두는중":
+			replace slot 1 of player's top inventory with {_n} in player's top inventory
+	else if name of player's top inventory is 	"&f&l사목 - 설명":
+		cancel event
+		event-inventory is player's top inventory
+		if index of event-slot is 1:
+			set {_gui} to chest inventory with 8 rows named "&f&l사목 - 테스트"
+			set {_red} to orange stained glass pane named "&f"
+			set {_blue} to light blue stained glass pane named "&f"
+			set {_lever} to redstone lever named "&8흑돌 &f두기"
+			set slot integers from 0 and 71 of {_gui} to white stained glass pane named "&f"
+			set slot 0 of {_gui} to {_red}
+			set slot 1 of {_gui} to {_lever}
+			set slot 2 of {_gui} to {_lever}
+			set slot 3 of {_gui} to {_lever}
+			set slot 4 of {_gui} to {_lever}
+			set slot 5 of {_gui} to {_lever}
+			set slot 6 of {_gui} to {_lever}
+			set slot 7 of {_gui} to {_lever}
+			set slot 8 of {_gui} to {_red}
+			
+			
+			set slot 9 of {_gui} to {_blue}
+			set slot 17 of {_gui} to {_blue}
+			
+			set slot 18 of {_gui} to {_red}
+			set slot 26 of {_gui} to {_red}
+			
+			set slot 27 of {_gui} to {_blue}
+			set slot 35 of {_gui} to {_blue}
+			
+			set slot 36 of {_gui} to {_red}
+			set slot 44 of {_gui} to {_red}
+			
+			set slot 45 of {_gui} to {_blue}
+			set slot 53 of {_gui} to {_blue}
+			
+			set slot 54 of {_gui} to {_red}
+			set slot 62 of {_gui} to {_red}
+			
+			set slot 63 of {_gui} to {_blue}
+			set slot 64 of {_gui} to {_red}
+			set slot 65 of {_gui} to {_blue}
+			set slot 66 of {_gui} to {_red}
+			set slot 67 of {_gui} to {_blue}
+			set slot 68 of {_gui} to {_red}
+			set slot 69 of {_gui} to {_blue}
+			set slot 70 of {_gui} to {_red}
+			set slot 71 of {_gui} to {_blue}		
+			open {_gui} to player		
+on inventory close:
+	if name of event-inventory is "&f&l사목 - 설명":
+		wait a tick
+		if name of player's top inventory is "container.crafting":
+			OpenMinigameMaster(player)

@@ -1,0 +1,113 @@
+options:
+	c: &c&f&a&d&e #드랍방지, 클릭방지 코드 (아이템 이름에 사용.)
+	a: &7[ &fGross &7]&f
+on load:
+	set {game::aw::spawn} to location(8.5, 72, -150.5, world("antwar"))
+	#1 = item, 2 = price
+	set {game::aw::shop::5::*} to stone shovel, 30
+	set {game::aw::shop::6::*} to iron shovel, 120
+	set {game::aw::shop::7::*} to gold shovel, 150
+	set {game::aw::shop::8::*} to diamond shovel, 250	
+	
+	set {game::aw::shop::14::*} to wooden sword, 20
+	set {game::aw::shop::15::*} to stone sword, 40
+	set {game::aw::shop::16::*} to iron sword, 80
+	set {game::aw::shop::17::*} to diamond sword, 160
+	
+	set {game::aw::shop::23::*} to bow, 50
+	set {game::aw::shop::24::*} to arrow, 4
+	set {game::aw::shop::25::*} to fishing rod, 50
+	set {game::aw::shop::26::*} to snowball item, 4 #snowball = entity type
+	
+	set {game::aw::shop::32::*} to web, 4
+	set {game::aw::shop::33::*} to ladder item, 4
+	#set {game::aw::shop::4} to enchanted book named "&e효율 인첸트 강화 주문서" with lore "&7해당 아이템을 삽에 갖다대면 효율 인첸트가 강화됩니다."
+	#set {game::aw::shop::4.price} to 128
+	
+	set {game::aw::shop::0::*} to leather helmet, 60
+	set {game::aw::shop::1::*} to leather chestplate, 80
+	set {game::aw::shop::2::*} to leather leggings, 70
+	set {game::aw::shop::3::*} to leather boots, 50
+	
+	set {game::aw::shop::9::*} to chainmail cap, 1
+	set {game::aw::shop::10::*} to chainmail chestplate, 1
+	set {game::aw::shop::11::*} to chainmail pants, 1
+	set {game::aw::shop::12::*} to chainmail boots, 1
+
+	set {game::aw::shop::18::*} to iron helmet, 1
+	set {game::aw::shop::19::*} to iron chestplate, 1
+	set {game::aw::shop::20::*} to iron pants, 1
+	set {game::aw::shop::21::*} to iron boots, 1
+	
+	set {game::aw::shop::27::*} to diamond helmet, 1
+	set {game::aw::shop::28::*} to diamond chestplate, 1
+	set {game::aw::shop::29::*} to diamond pants, 1
+	set {game::aw::shop::30::*} to diamond boots, 1
+on unload:
+	delete {game::aw::shop::*}
+	
+on inventory click:
+	if name of player's top inventory is "&e개미전쟁 상점":
+		cancel event
+		event-inventory is player's top inventory
+		if {game::aw::shop::%index of event-slot%::2} is set:
+			set {_price} to {game::aw::shop::%index of event-slot%::2}
+			if amount of dirt in player's inventory  < {_price}:
+				send "{@a} 흙이 부족해 아이템을 구매 할 수 없습니다." to player
+				play sound "entity.villager.no" to player
+			else:
+				play sound "entity.arrow.hit_player" to player
+				send "{@a} %type of event-item%을 구매하였습니다." to player
+				remove {_price} of dirt from player's inventory
+				GiveItem(player, {game::aw::shop::%index of event-slot%::1})
+function OpenAwShop(p:player):
+	set {_gui} to chest inventory with 4 rows named "&e개미전쟁 상점"
+	loop indexes of {game::aw::shop::*}:
+		set slot loop-value parsed as integer of {_gui} to {game::aw::shop::%loop-value%::1}
+		add "", "&7가격 : &6%{game::aw::shop::%loop-value%::2}%&6흙" and "&e좌클릭시 해당 아이템을 구매합니다." to lore of slot loop-value parsed as integer of {_gui}
+	open {_gui} to {_p}
+function StartAw(name:text):
+	execute {worldcommander::antwar} command "worldborder set 100"
+	teleport {game::%{_name}%::join::*} to {game::aw::spawn}
+	teleport {game::%{_name}%::join::*} to {game::aw::spawn}
+	send "&e10초후 무적이 해제됩니다." to {game::%{_name}%::join::*}
+	loop {game::%{_name}%::join::*}:
+		set {_p} to loop-value
+		set slot 0 of {_p}'s inventory to emerald named "{@c}&e상점&7(우클릭)" with lore "&7우클릭시 상점을 오픈합니다."
+		give stone shovel to {_p}
+		set {_p}'s gamemode to survival
+	loop 10 times:
+		if loop-num > 5:
+			send "&e무적이 %11 - loop-num%&e초 후에 해제됩니다." to {game::%{_name}%::join::*}
+		if {game::%{_name}%::join::*} is not set:
+			StopGame({_name})
+			stop
+		wait a seconds
+	send "&e무적이 헤제되었습니다." to {game::%{_name}%::join::*}
+	make {game::%{_name}%::join::*} vulnerable 
+	while {game::%{_name}%::join::*} is set:
+		if size of {game::%{_name}%::join::*} < 2:
+			send "%nl% &6>&c> &e%{game::%{_name}%::join::*}%&e님이 &c개미전쟁(개인전)&e에서 승리하였습니다. %nl%" to players where [input's world is world("defense")] and {game::%{_name}%::join::*}	
+			set {game::%{_name}%::join::*} to {game::%{_name}%::join::*}
+			set {_u} to uuid of {game::%{_name}%::join::1}
+			add 1 to {data::playerdata::%{_u}%::record.aw.win}
+			StopGame({_name})
+			wait 3 seconds
+			execute console command "wr reset antwar"
+			stop
+		add 1 to {_count}
+		wait a seconds
+	StopGame({_name})
+on rightclick with emerald:
+	name of event-item is "{@c}&e상점&7(우클릭)"
+	OpenAwShop(player)	
+on death of player:
+	if {game::%player%::playing} is "aw":
+		add 10 to attacker's money
+		add 1 to {data::playerdata::%uuid of player%::record.aw.death}
+		add 1 to {data::playerdata::%uuid of player%::record.aw.lose}
+		add 1 to {data::playerdata::%uuid of attacker%::record.aw.kill}
+		send "&e%player%&e님이 사망하였습니다." to {game::aw::join::*}
+		ExitGameNotMessage(victim)
+		GoLobby(victim)
+		GoLobby(victim)

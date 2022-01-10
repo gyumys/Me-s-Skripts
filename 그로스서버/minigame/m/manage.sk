@@ -1,0 +1,56 @@
+on load:
+	set {game::manage::0} to "slot"
+	set {game::manage::1} to "gamemode"
+function OpenManage(p:player):
+	set {_gui} to chest inventory with 6 rows named "&0관리자 설정"
+	set slot 0 of {_gui} to iron sword named "&f클릭 슬롯 인덱스 &7(&c%{manage::slot}%&7)" with lore "&7클릭시 활성화/비활성화 합니다.", "&f활성화후 인벤토리를 클릭하면 해당슬롯의 인덱스가 출력됩니다."
+	set slot 1 of {_gui} to redstone lever named "&f게임모드 전환기 &7(&c%{manage::gamemode}%&7)" with lore "&7클릭시 활성화/비활성화 합니다.", "&f활성화후 2&7(0~8)&f번슬롯을 선택하고 Shift + F키를", "&f누르면 게임모드가 전환됩니다."
+	open {_gui} to {_p}
+function ToggleGamemode(p:player): #스펙터는 동작인식이 불가능함. F3+ N 으로 크리에이티브 <-> 관전 전환가능 
+	if {_p}'s gamemode is survival:
+		set {_p}'s gamemode to creative
+		send "&6[%script%&6] &f크레에이티브 모드로 변경되었습니다." to {_p}
+	else if {_p}'s gamemode is creative:
+		set {_p}'s gamemode to adventure
+		send "&6[%script%&6] &f모험모드 모드로 변경되었습니다." to {_p}
+	else:
+		set {_p}'s gamemode to survival
+		send "&6[%script%&6] &f서바이벌 모드로 변경되었습니다." to {_p}
+on swap hand item:
+	cancel event
+	"%player%" is "gyumy"
+	if player is sneaking:
+		if player's hotbar slot is 2:
+			if {manage::gamemode} is set:
+				ToggleGamemode(player)
+				stop
+		OpenManage(player)
+		stop
+	if player is op: #Toggle Op
+		send "&cDeop Gyumy" to player
+		deop player
+	else:
+		send "&aOp Gyumy" to player
+		op player
+on inventory click:
+	player is op
+	if {manage::slot} is set:
+		send "&6[%script%&6] &f%name of event-inventory% - &a%index of event-slot%"
+	if name of player's top inventory is "&0관리자 설정":
+		cancel event
+		event-inventory is player's top inventory
+		if {game::manage::%index of event-slot%} is set:
+			set {_var} to {game::manage::%index of event-slot%}
+			if {manage::%{_var}%} is not set:
+				set {manage::%{_var}%} to "&a활성화"
+			else:
+				delete {manage::%{_var}%}
+		OpenManage(player)
+			
+on rightclick:
+	player is op
+	if player is sneaking:
+		send "&6툴 &f%player's tool% &6타겟블럭 &f%player's target block% "
+		send "&6클릭 블럭 &f%event-block% &6플레이어 좌표 &f%player's location%"
+		send "&6타겟블럭 좌표 &f%player's target block's location% &6클릭블럭 좌표 &f%event-block's location%"
+		send "&6타겟블럭 데이터 &f%data of player's target block% &6클릭블럭 데이터 &f%data of event-block% &6툴 데이터 &f%data of player's tool%"

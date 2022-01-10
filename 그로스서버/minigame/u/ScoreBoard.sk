@@ -1,0 +1,31 @@
+#스코어보드 관련해서 렉이 있을걸로 추정중. 시간나면수정하기.
+
+function DeleteScoreBoard(p:player):
+	loop 15 times:
+		delete the id based score "%{_p}%Slot%loop-number%" in stylish scoreboard "Score-%{_p}%"
+	delete stylish scoreboard "Score-%{_p}%"		
+# on join:
+	# while player is online:
+		# if {game::%player%::scoreboard} is not set:
+			# if stylish scoreboard "Score-%player%" is set:
+				# DeleteScoreBoard(player)
+		# else:
+			# if {game::%{game::%player%::scoreboard}%::scoreboard::*} is set:
+				# add "&a", "&b", "&c", "&d", "&e", "&1", "&2", "&3", "&4", "&5", "&6", "&7", "&8", "&9" and "&f" to {_d::*}
+				# if stylish scoreboard "Score-%player%" is not set:
+					# DeleteScoreBoard(player)
+					# create new stylish scoreboard named "Score-%player%"
+					# set {_board::*} to {game::%{game::%player%::scoreboard}%::scoreboard::*}
+					# set title of stylish scoreboard "Score-%player%" to "%{game::%{game::%player%::scoreboard}%::title}%"
+					# set stylish scoreboard of player to "Score-%player%"
+					# set {_slot} to size of {_board::*} 
+					# loop {_board::*}:
+						# evaluate "set {_s} to ""%loop-value%"""
+						# create a new id based score "%player%Slot%{_slot}%" with text "%{_d::%{_slot}%}%%{_s}%" slot {_slot} for stylish scoreboard "Score-%player%"
+						# subtract 1 from {_slot}
+				# set {_slot} to size of {_board::*}
+				# loop {_board::*}:
+					# evaluate "set {_s} to ""%loop-value%"""
+					# set the text of id "%player%Slot%{_slot}%" to "%{_d::%{_slot}%}%%{_s}%"
+					# subtract 1 from {_slot}
+		# wait 4 tick

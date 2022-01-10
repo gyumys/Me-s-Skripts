@@ -1,0 +1,124 @@
+options:
+	c: &c&f&a&d&e #드랍방지, 클릭방지 코드 (아이템 이름에 사용.)
+function JoinGame(p:player,name:text):
+	{game::%{_p}%::playing} is not set
+	if size of {game::%{_name}%::join::*} < {game::%{_name}%::maxjoin}:
+		delete {game::%{_p}%::scoreboard}
+		clear {_p}'s inventory
+		set {game::%{_p}%::playing} to {_name}
+		add {_p} to {game::%{_name}%::join::*}
+		send "&7%{_p}%&e님이 입장하였습니다. &7(&a%size of {game::%{_name}%::join::*}%&7/&a%{game::%{_name}%::maxjoin}%&7)" to {game::%{_name}%::join::*}
+		send "%nl%&6&l■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■" to {_p}
+		set {_a::*} to {game::%{_name}%::info} split by "%nl%"
+		loop {_a::*}:
+			send GetCenterText(loop-value,320) to {_p}
+		send "%nl%&6&l■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■" to {_p}
+		teleport {_p} to {game::%{_name}%::watingroom}
+		if {game::%{_name}%::minijoin} <= size of {game::%{_name}%::join::*}:
+			send "&e인원이 %{game::%{_name}%::minijoin}%&e명 이상이되어 10초 후에 게임이 시작됩니다." to {game::%{_name}%::join::*}
+			if {game::%{_name}%::start} is not set:
+				loop 10 times:
+					set {game::%{_name}%::start} to loop-num
+					if loop-num > 5:	
+						send "&e게임이 %11 - loop-num%&e초 후에 시작됩니다." to {game::%{_name}%::join::*}
+						play sound "block.note.harp" with volume 1 with pitch 1 to {_p}
+					if size of {game::%{_name}%::join::*} < {game::%{_name}%::minijoin} :
+						send "&e인원이 부족해져 시작되지 않았습니다." to {game::%{_name}%::join::*}
+						stop
+					wait a seconds
+				send "&e게임이 시작되었습니다." to {game::%{_name}%::join::*}
+				set {game::%{_p}%::scoreboard} to {_name}
+				StartGame({_name})
+				play sound "block.note.harp" with volume 1 with pitch 2 to {_p}
+function StopGame(name:text):
+	delete {game::%{_name}%::start}
+	delete {game::%{_name}%::playing}
+	set {_join::*} to {game::%{_name}%::join::*}
+	loop {game::%{_name}%::join::*}:
+		GoLobby(loop-value)
+		delete {game::%loop-value%::playing}
+	delete {game::%{_name}%::join::*}
+function StartGame(name:text):
+	if {_name} is "aw":
+		StartAw({_name})
+	else if {_name} is "rww":
+		StartRww({_name})
+	else if {_name} is "mc":
+		StartMc()
+	#evaluate "Start%{_name}%({_name})"
+	delete {game::%{_name}%::start}
+	set {game::%{_name}%::playing} to true
+function GoLobby(p:player):
+	set {game::%{_p}%::scoreboard} to "lobby"
+	teleport {_p} to {game::lobby::loc}
+	clear {_p}'s inventory
+	set {_p}'s gamemode to adventure
+	make {_p} invulnerable
+	set slot 0 of {_p}'s inventory to compass named "{@c}&e메뉴&7(우클릭)" with lore "&7우클릭시 메뉴를 오픈합니다."
+	heal {_p}
+	apply saturation 1 without particles to {_p} for 999 days replacing existing effect
+	apply speed 1 without particles to {_p} for 999 days replacing existing effect
+	set {_p}'s level to {data::playerdata::%{_uuid}%::level}
+function ExitGameNotMessage(p:player):	
+	if {game::%{_p}%::playing} is set:
+		remove {_p} from {game::%{game::%{_p}%::playing}%::join::*}
+		delete {game::%{_p}%::playing}
+function ExitGame(p:player):
+	if {game::%{_p}%::playing} is set:
+		set {_u} to uuid of {_p}
+		if {game::%{game::%{_p}%::playing}%::playing} is set:
+			add 1 to {data::playerdata::%{_u}%::record.%{game::%{_p}%::playing}%.quit}	
+		send "&7%{_p}%&e님이 퇴장하였습니다. &7(&a%size of {game::%{game::%{_p}%::playing}%::join::*} - 1%&7/&a%{game::%{game::%{_p}%::playing}%::maxjoin}%&7)" to {game::%{game::%{_p}%::playing}%::join::*}
+		remove {_p} from {game::%{game::%{_p}%::playing}%::join::*}
+		delete {game::%{_p}%::playing}
+on join:
+	GoLobby(player)
+on quit:
+	ExitGame(player)
+	DeleteScoreBoard(player)
+on command:
+	if {game::%player%::playing} is set:
+		cancel event
+		if command is "퇴장":
+			ExitGame(player)
+			if player is in world("gamble"):
+			else:
+				GoLobby(player)
+			stop
+		send "&e게임중에는 명령어를 사용할 수 없습니다. '/퇴장'"  to player
+on chat:
+	stop
+	cancel event
+	if player is in world("world"): #퀴즈 정답시 메세지 전달방지.
+		if message is {game::quiz.now}:
+			stop 
+	set {_message} to chat format
+	replace "[message]" with message in {_message}
+	replace "[player]" with name of player in {_message}
+	send {_message} to players where [input's world is player's world]
+command /로비:
+	aliases: lobby, spawn, 스폰
+	trigger:
+		ExitGame(player)
+		GoLobby(player)
+on rightclick with compass:
+	if name of event-item is "{@c}&e메뉴&7(우클릭)":
+		cancel event
+		set {_gui} to chest inventory with 6 rows named "&f메뉴"
+		set slot 0 of {_gui} to dirt named "&6개미전쟁" with lore "&7▶ &f클릭시 개미전쟁 GUI를 오픈합니다."
+		set slot 2 of {_gui} to gold block named "&e도박장" with lore "&7▶ &f클릭시 도박장 으로 이동합니다."
+		set slot 4 of {_gui} to chest named "&b랜덤무기전쟁" with lore "&7▶ &f클릭시 랜덤무기전쟁 GUI를 오픈합니다."
+		set slot 6 of {_gui} to cobblestone named "&c러스트" with lore "&7▶ &f클릭시 러스트 GUI를 오픈합니다."
+		set slot integers from 36 and 44 of {_gui} to white stained glass pane named "&f"
+		set slot 45 of {_gui} to player head named "&e프로필" with lore "&7▶ &f클릭시 프로필을 확인합니다."
+		set {_i} to bed
+		set data of {_i} to 14
+		set slot 46 of {_gui} to {_i} named "&6로비" with lore "&7▶ &f클릭시 로비로 이동합니다."
+		open {_gui} to player
+command /미니게임:
+	trigger:
+		if {game::%player%::playing} is set:
+			send "&e게임중에는 미니게임 GUI를 열수 없습니다."
+			stop
+		set {_gui} to chest inventory with 6 rows named "&f미니게임"
+		open {_gui} to player
