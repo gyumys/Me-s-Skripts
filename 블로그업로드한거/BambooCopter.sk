@@ -1,0 +1,45 @@
+#Copyright 2021. 규미(Gyumy) all rights reserved.
+
+#[개발환경]
+#Java : jre1.8.0_281 build 1.8.0_281-b09
+#Bukkit : git-Paper-1618 (MC: 1.12.2)
+#Skript : 2.5.3
+#Add-on : x
+
+#유튜브 : https://www.youtube.com/channel/UCVDdD9J2EZdqF6QwJ0PyP_A
+#블로그 : https://nalag.tistory.com/36
+#디스코드 : 규미#7691
+
+on rightclick with diamond hoe:
+	player's helmet is air
+	name of event-item is "&f대나무헬리콥터"
+	remove event-item from player's tool
+	set player's helmet to event-item
+	play sound "item.armor.equip_elytra" with volume 1 with pitch 1
+on armor change:
+	
+	name of event-item is "&f대나무헬리콥터"
+	remove levitation from player
+	while name of player's helmet is "&f대나무헬리콥터":
+		push player infront at speed 0.01
+		if player is sneaking:
+			remove levitation from player			
+			if player doesn't contain levitation:
+				apply levitation -5 to player for 999 days replacing existing effect
+		else:		
+			push player infront at speed 0.05
+			apply levitation 1 to player for 10 seconds
+		wait a tick		
+	remove levitation from player		
+command /대나무헬리콥터:
+	permission: BambooCopter.Get
+	trigger:
+		set {_item} to unbreakable diamond hoe
+		set {_item}'s durability to 1
+		give {_item} named "&f대나무헬리콥터" with lore "&7우클릭시 대나무헬리콥터를 장착합니다." to player
+		
+on damage of a player:
+	name of victim's helmet is "&f대나무헬리콥터"
+	damage cause is fall
+	cancel event
+		
