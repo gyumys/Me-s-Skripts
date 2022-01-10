@@ -1,0 +1,28 @@
+options:
+	a: &b[ &f퀘스트 &b]&f
+command /퀘스트 [<text>] [<text>]:
+	permission: Quest.Set
+	aliases: Quest
+	trigger:
+		if arg 1 is not set:
+			send "{@a} /퀘스트 목록"
+			send "{@a} /퀘스트 생성 이름"
+			send "{@a} /퀘스트 제거 이름"
+			send "{@a} /퀘스트 설정 이름"
+			stop
+		if arg 1 is "목록":
+			loop {quest::*}:
+				send "%loop-index%"
+			stop
+		if arg 2 is not set:
+			send "{@a} 이름을 입력해주세요."
+			stop
+		if arg 1 is "생성":
+			set {quest::%arg-2%} to true
+		else if arg 1 is "제거":
+			delete {quest::%arg-2%}
+		else if arg 1 is "설정":
+			set {_gui} to chest inventory with 6 row with name "123"
+			set slot 0 of {_gui} to dirt named "모드변경 [ %{quest::%arg-2%}%"
+			open {_gui} to player
+			
