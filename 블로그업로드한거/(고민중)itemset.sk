@@ -1,0 +1,27 @@
+options:
+	a: &f[ &a아이템설정 &f]
+command /로어설정 [<integer>] [<text>]:
+	trigger:
+		if arg 1 is not set:
+			send "{@a} /로어설정 [줄] [내용] - 해당줄의 로어를 설정합니다."
+			send "{@a} /로어설정 [줄] 삭제 - 해당줄의 로어를 삭제합니다."
+		else if arg 2 is "삭제":
+			delete line arg-1 of lore of player's tool
+			send "{@a} 아이템에 %arg-1%번째 로어를 제거하였습니다."
+		else:
+			set {_lore} to arg-2
+			replace "_" with " " in {_lore}
+			replace "&_" with "_" in {_lore}
+			set line arg-1 of lore of player's tool to colored {_lore}
+			send "{@a} 아이템에 %arg-1%번째 로어를 %colored {_lore}%&f으(로) 설정하였습니다."
+command /이름설정 [<text>]:
+	trigger:
+		if arg 1 is not set:
+			send "{@a} /이름설정 [내용] - 이름을 설정합니다."
+			send "{@a} /이름설정 삭제 - 이름을 삭제합니다."
+		else if arg 1 is "삭제":
+			send "{@a} 아이템의 이름을 삭제하였습니다."
+			set name of tool to ""
+		else:
+			set name of player's tool to colored arg-1
+			send "{@a} 아이템에 이름을 %colored arg-1%&f으(로) 설정하였습니다."
