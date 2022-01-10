@@ -1,0 +1,14 @@
+command /길:
+	trigger:
+		if {autopath.%player%} is set:
+			broadcast "off"
+			delete {autopath.%player%}
+		else:
+			set {autopath.%player%} to true
+			broadcast "on"
+		while {autopath.%player%} is true:
+			set {_loc} to player's location
+			set pitch of {_loc} to 0
+			set block at location 1 downward {_loc} to stone
+			set block at location 1 infront and downward {_loc} to stone
+			wait a tick
