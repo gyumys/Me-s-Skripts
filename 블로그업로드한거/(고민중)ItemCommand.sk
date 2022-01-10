@@ -1,0 +1,48 @@
+#Copyright 2021. 규미(Gyumy) all rights reserved.
+
+#테스트된 스크립트 버전 : 2.6-alpha1
+#애드온 : x
+#유튜브 : https://www.youtube.com/channel/UCVDdD9J2EZdqF6QwJ0PyP_A
+#블로그 : https://nalag.tistory.com/34
+#디스코드 : 규미#7691
+
+options:
+	a: &b[ &f아이템커맨드 &b]&f
+	
+command /아이템커맨드 [<text>] [<text>]:
+	permission: itemcommand.set
+	trigger:
+		if arg 1 is "목록":
+			if size of {itemcommand::*} is 0:
+				send "{@a} 등록된 명령어가 없습니다."
+			loop {itemcommand::*}:
+				add 1 to {_i}
+				send "{@a} %{_i}%. %loop-index% ""%loop-value%"""
+		else if arg 1 or arg 2 is not set:
+			send "{@a} /아이템커맨드 목록"		
+			send "{@a} /아이템커맨드 등록 명령어"
+			send "{@a} /아이템커맨드 제거 번호"
+		else if arg 1 is "제거":
+			if "%arg-2%" parsed as integer < size of {itemcommand::*}:
+				send "{@a} 올바른 번호를 입력하세요."
+				stop
+			loop {itemcommand::*}:
+				add 1 to {_i}
+				if {_i} is "%arg-2%" parsed as integer:
+					delete {itemcommand::%loop-index%}
+					send "{@a} %loop-index% 를 제거하였습니다."
+					stop
+			send "{@a} 존재하지 않는 아이템입니다."		
+		else if arg 1 is "등록":
+			if {itemcommand::%name of player's tool%} is set:
+				send "{@a} 이미 커맨드가 등록된 아이템입니다."
+				stop
+			if name of player's tool is not set:
+				send "{@a} 이름이 없는 아이템은 등록할 수 없습니다."
+				stop
+			send "{@a} 아이템에 ""/%arg-2%"" 커맨드가 적용되었습니다."	
+			set {itemcommand::%name of player's tool%} to "%arg-2%"
+on rightclick:
+	if {itemcommand::%name of player's tool%} is set:
+		execute op command "/%{itemcommand::%name of player's tool%}%"
+		
