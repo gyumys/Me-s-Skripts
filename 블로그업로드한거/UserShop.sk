@@ -1,0 +1,123 @@
+#Copyright 2022. 규미(Gyumy) all rights reserved.
+
+#[개발환경]
+#Java : jre1.8.0_281 build 1.8.0_281-b09
+#Bukkit : git-Paper-1618 (MC: 1.12.2)
+#Skript : 2.5.3
+#Add-on : x
+
+#유튜브 : https://youtu.be/iCxROni2mVE
+#블로그 : https://nalag.tistory.com/46
+#디스코드 : 규미#7691
+
+options:
+	a: &f[ &a유저상점 &f]
+	pmin: 0 #유저상점 등록 최소 가격 (10으로 설정할경우 10원 미만일경우 등록 불가능.)
+	pmax: 1000000000 #유저상점 등록 최대 가격 (10으로 설정할경우 10원 초과시 등록불가능.)
+	rmax: 20 #한 플레이어가 등록할 수 있는 최대 물품수 ( 변수를 악의적으로 생성할 수도 있기에 )
+	cd: 7 day #
+
+on load:
+	delete {usershop::*}
+on rightclick:
+	if tool is diamond:
+		execute op command "/sk reload UserShop"
+	else if tool is emerald:
+		execute op command "/유저상점"
+	else:	
+		execute op command "/유저상점 등록 10 1"
+function ReloadUserShop():
+	loop players:
+		if name of loop-player's top inventory contains "{@a} 유저상점 - ":
+			set {_page::*} to name of loop-player's top inventory split by "/"
+			replace "{@a} 유저상점 - " with "" in {_page::1}
+			set {_page} to {_page::1} parsed as integer
+			OpenUserShop(loop-player,{_page},"")
+function OpenUserShop(p:player,page:integer,t:text):
+	if {_t} is not "":
+		set {_b} to true
+		loop {usershop::*}:
+			if "%{usershop::%loop-index%::1}%" is {_t}:
+				add loop-value to {_usershop::*}
+	else:			
+		set {_usershop::*} to {usershop::*}
+	set {_last} to round down size of {_usershop::*}/45 + 1
+	set {_name} to "{@a} 유저상점 - %{_page}%/%{_last}%"
+	set {_name} to "{@a} 유저상점 - %{_page}%/%{_last}% (%{_t}%)" if {_b}
+	set {_gui} to chest inventory with 6 rows named {_name}
+	set slot integers from 45 and 53 of {_gui} to light green stained glass pane
+	set slot 46 of {_gui} to paper named "&e<&6< &e이전페이지로 &7(클릭)" with lore "&7이전페이지로 이동합니다." if {_page} is not 1
+	if {_b}:
+		set slot 49 of {_gui} to player head named "&6%{_p}%님의 정보" with lore "&e소지금 &7: &f%{_p}'s money%", "", "&7클릭시 내가 등록한 물품들을 확인합니다."
+	else:	
+		set slot 49 of {_gui} to player head named "&6%{_p}%님의 정보" with lore "a&e소지금 &7: &f%{_p}'s money%", "", "&7클릭시 내가 등록한 물품들을 확인합니다."
+	set slot 52 of {_gui} to paper named "&6>&e> 다음페이지로 &7(클릭)" with lore "&7다음페이지로 이동합니다." if {_page} is not {_last}
+	set {_page} to {_last}-({_page}-1) #아이템을 최신순으로 정렬하기위해 페이지를 반대로함.
+	#size of {usershop::*} - (({_page} - 1)*45)
+	loop 45 times:
+		set {_i} to ({_page} - 1)*45 + loop-num
+		if {usershop::%{_i}%::1} is {_p}:
+			set slot loop-num - 1 of {_gui} to {_usershop::%{_i}%} with lore "", "&b판매자 &7: &f%{usershop::%{_i}%::1}%", "&b가격 &7: &f%{usershop::%{_i}%::2}%원", "&b만료일 &7: &f%{usershop::%{_i}%::3} formatted with ""y-MM-DD HH:mm""%", "", "&e[클릭하여 구매합니다.]"
+		else:
+			set slot loop-num - 1 of {_gui} to {_usershop::%{_i}%} with lore "", "&b판매자 &7: &f%{usershop::%{_i}%::1}%", "&b가격 &7: &f%{usershop::%{_i}%::2}%원", "", "&e[클릭하여 구매합니다.]"	
+	open {_gui} to {_p}
+on inventory click:
+	if name of player's top inventory contains "{@a} 유저상점 - ":
+		play sound "block.note.hat" to player
+		cancel event
+		event-inventory is player's top inventory
+		event-item is set
+		event-item is not air
+		set {_page::*} to name of event-inventory split by "/"
+		replace "{@a} 유저상점 - " with "" in {_page::1}
+		set {_page} to {_page::1} parsed as integer 		
+		if index of event-slot > 45:
+			if index of event-slot is 52:
+				add 1 to {_page}
+				OpenUserShop(player,{_page},"")
+			else if index of event-slot is 46:
+				add -1 to {_page}
+				OpenUserShop(player,{_page},"")
+			else if index of event-slot is 49:
+				OpenUserShop(player,1,"%player%")
+		else:
+			send "{@a} 구매"
+command /유저상점 [<text>] [<text>] [<text>]:
+	trigger:
+		if arg 1 is not set:
+			send "{@a} /유저상점 도움말 을 입력하여 관련 명령어들을 확인할 수 있습니다."
+			OpenUserShop(player,1,"")
+		else if arg 1 is "도움말":
+			send "{@a} &a&m          &f &a&l[ &a유저상점 도움말 &a&l] &a&m          &f "
+			send "{@a} /유저상점 도움말 &e- 지금 보고있는 도움말을 띄웁니다."
+			send "{@a} /유저상점 등록 [가격] [갯수] &e- 들고 있는 아이템을 등록합니다."
+			send "{@a} /유저상점 수령함 &e- 구매한 아이템을 확인합니다."
+			send "{@a} /유저상점 검색 [플레이어] &e- 해당플레이어가 등록한 상품을 확인합니다."
+			player is op
+			send "{@a} &c===== [ 관리자 전용명령어 ] ====="
+			send "{@a} /유저상점 블랙리스트 &e- 상점에 등록불가능한 아이템을 설정합니다."
+		else if arg 1 is "등록":
+			set {_amount} to arg-3 parsed as number
+			set {_price} to arg-2 parsed as number
+			if name of tool is set:
+				set {_name} to name of tool
+			else:
+				set {_name} to type of tool
+			if tool is air:
+				send "{@a} 손에들고 있는 아이템이 존재하지 않습니다."
+			else if {_amount} > item amount of tool:
+				send "{@a} 손에들고 있는 아이템이 부족해 등록할 수 없습니다."
+			else if 	{_price} < {@pmin}:
+				send "{@a} 가격은 {@pmin}원보다 커야합니다."
+			else if {_price} > {@pmax}:
+				send "{@a} 가격은 {@pmax}원보다 작아야합니다."
+			else:
+				send "{@a} %{_name}% &f%{_amount}%개를 유저상점에 &e%{_price}%&f원에 등록하였습니다."
+				loop 64 times:
+					set {_i} to size of {usershop::*}
+					set {usershop::%{_i}%} to {_amount} of tool
+					set {usershop::%{_i}%::*} to player, {_price}, {@cd} from now
+					#remove {_amount} of tool from tool
+				ReloadUserShop()
+		player is op
+		if arg 1 is "블랙리스트":
