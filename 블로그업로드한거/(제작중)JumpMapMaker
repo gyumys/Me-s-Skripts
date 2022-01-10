@@ -1,0 +1,277 @@
+#Copyright 2021. 규미(Gyumy) all rights reserved.
+
+#[개발환경]
+#Java : jre1.8.0_281 build 1.8.0_281-b09
+#Bukkit : git-Paper-1618 (MC: 1.12.2)
+#Skript : 2.5.3
+#Add-on : x
+
+#유튜브 : https://www.youtube.com/channel/UCVDdD9J2EZdqF6QwJ0PyP_A
+#블로그 : https://nalag.tistory.com/36
+#디스코드 : 규미#7691
+
+options:
+	a: &b[ &f점프맵 &b]&f
+	c: &c&f&a&d&e&r&f
+function StopJumpMap(p:player):
+	set {_u} to uuid of {_p}
+	loop {jump.items.%{_u}%::*}:
+		set {_i} to "%loop-index%" parsed as integer
+		set slot {_i} + 2 of {_p} to loop-value
+	delete {jump.start.%{_u}%}
+	delete {jump.items.%{_u}%::*}
+	delete {jump.lastsave.%{_u}%}
+	delete {jump.lastsavei.%{_u}%}
+function OpenJumpMapSavePoint(p:player,t:text):
+	set {_gui} to chest inventory with 6 row named "%{_t}%{@c} - 세이브포인트 설정"
+	loop {jumpmap.%{_t}%.save::*}:
+		add stone named "%loop-index%" with lore "&6%loop-value%", "&f - 클릭시 해당 &6세이브포인트&f로 &a이동&f합니다." and "&f - 쉬프트 클릭시 해당 &6세이브포인트&f를 &c제거&f합니다." to {_gui}
+	open {_gui} to {_p}
+function OpenJumpMapCommands(	p:player,t:text):
+	set {_gui} to chest inventory with 6 rows named "%{_t}%{@c} - 커맨드 설정"
+	loop indexes of {jump.%{_t}%.command::*}:
+		add stone named "%loop-value%" with lore "&f - 클릭시 위치의 커맨드 설정 GUI로 이동합니다.", "&f - 쉬프트 클릭시 해당 위치에 포함된 커맨드들을 제거합니다." and "&7%size of {jump.%{_t}%.command::%loop-value%::*}%개의 커맨드가 추가되어있습니다." to {_gui}
+	open {_gui} to {_p}
+function OpenJumpMapCommandsOfLoc(p:player,t:text, loc: text):
+	set {_gui} to chest inventory with 6 rows named "%{_t}%{@c} - 커맨드 설정{@c} - %{_loc}%"
+	broadcast "{jump.%{_t}%.command::%{_loc}%::*}"
+	loop {jump.%{_t}%.command::%{_loc}%::*}:
+		broadcast "%loop-value%"
+		add stone named "%loop-value%" with lore "&f - 클릭시 " and "&f - 쉬프트 클릭시 해당 커맨드를 제거합니다." to {_gui}
+	open {_gui} to {_p}		
+	
+command /보상받기: #점프맵 보상지급 명령어 샘플
+	permission: Bosang.Get
+	trigger:
+		give diamond to player
+command /점프맵 [<text>] [<text>] [<text>]:
+	trigger:
+		if arg 1 is "기록":
+			if arg 2 is set:
+				set {_p} to arg-2 parsed as offline player
+			else:
+				set {_p} to player
+			set {_u} to uuid of {_p}
+			send "{@a} &b=== &f%{_p}%님의 점프맵 기록 &b==="
+			loop {jumpmap::*}:
+				send "{@a} &6&l%loop-index%&f - %{jump.%loop-index%.top::%{_u}%}%"		
+		else if arg 1 is "순위":
+			if {jumpmap::%arg 2%} is not set:
+				send "{@a} %arg-2%은(는) 존재하지 않는 점프맵입니다."
+				stop
+			loop {jump.%arg-2%.top::*}:
+				set {_a} to "%loop-value%"
+				set {_r::%{_a}%} to loop-index
+			loop {_r::*}:
+				add 1 to {_i}
+				add loop-index to {_r2::*}
+				if {_i} is 25:
+					stop
+			set {_gui} to chest inventory with 6 rows named "{@a} 점프맵 순위"	
+			open {_gui} to player
+			loop 5 times: #점프맵 순위를 피라미드 모양으로 배열.
+				set {_i} to loop-num
+				loop {_i} + {_i} - 1 times:
+					set {_j} to loop-num-2
+					add 1 to {_k}
+					if {_r2::%{_k}%} is set:
+						set slot (({_i} + {_i} - 1) * 4) + {_j} - 1 of {_gui} to skull of {jump.%arg-2%.top.player::%{_r::%{_r2::%{_k}%}%}%} named "&6%{_k}% | &e%name of {jump.%arg-2%.top.player::%{_r::%{_r2::%{_k}%}%}%}%" with lore " &b%{_r2::%{_k}%}%"
+					else:	
+						set {_players::*} to "ban", "minecraft", "mojang", "hello" and "iem"
+						set slot (({_i} + {_i} - 1) * 4) + {_j} - 1 of {_gui} to player head item named "&6%{_k}% | &eX"
+					wait a tick			
+		else if arg 1 is "목록":	
+			loop {jumpmap::*}:
+				if {jump.%loop-index%.top::%uuid of player%} is set:
+					send "{@a} &6&l%loop-index%&f  - 내 최고기록 : %{jump.%loop-index%.top::%uuid of player%}%"
+			stop	
+		else if arg 1 or arg 2 is not set:
+			send "{@a} &b=== &f점프맵 도움말 1/1 &b==="
+			if player is op:
+				send "{@a} /점프맵 목록"
+				send "{@a} /점프맵 순위 <이름>"
+				send "{@a} /점프맵 기록 [플레이어]"
+				send "{@a} /점프맵 생성 <이름>"
+				send "{@a} /점프맵 삭제 <이름>"
+				send "{@a} /점프맵 설정 <이름>"
+				send "{@a}" 
+				send "&c※ 주의! 점프맵 설정 을 시작하면 인벤토리에 일부아이템이 점프맵 설정아이템으로 대체됩니다."
+			else:
+				send "{@a} /점프맵 목록"
+				send "{@a} /점프맵 순위 <이름>"
+				send "{@a} /점프맵 기록 [플레이어]"
+			stop
+		player is op	
+		if arg 1 is "생성":
+			if {jumpmap::%arg-2%} is set:
+				send "{@a} &6%arg-2%&f은(는) 이미 존재하는 점프맵 입니다."
+				stop
+			set {jumpmap::%arg-2%} to true
+			send "{@a} 점프맵 &6%arg-2%&f을(를) 생성하였습니다."
+		else if arg 1 is "삭제":	
+			if {jumpmap::%arg-2%} is not set:
+				send "{@a} &6%arg-2%&f은(는) 존재하지 않는 점프맵 입니다."		
+				stop
+			delete {jumpmap::%arg-2%}			
+			delete {jumpmap.%arg-2%.last}
+			delete {jumpmap.%arg-2%.save::*}
+			delete {jump.%arg-2%.top::*}
+			delete {jump.%arg-2%.command::*}
+			send "{@a} 점프맵 &6%arg-2%&f이(가) 삭제되었습니다."
+		else if arg 1 is "설정":
+			if {jumpmap::%arg-2%} is not set:
+				send "{@a} &6%arg-2%&f은(는) 존재하지 않는 점프맵 입니다."		
+				stop		
+			send "{@a} 점프맵 설정을 시작합니다."			
+			send "{@a} 인벤토리에 있는 아이템을 사용해 점프맵을 설정하세요."
+			set slot 0 of player to blaze rod named "%arg-2%{@c} - &f시작지점 지정" with lore "" and "&7좌클릭시 해당 블럭을 시작지점으로 지정합니다."
+			set slot 1 of player to blaze rod named "%arg-2%{@c} - &f종료지점 지정" with lore "" and "&7좌클릭시 해당 블럭을 종료지점으로 지정합니다."
+			set slot 2 of player to blaze rod named "%arg-2%{@c} - &f세이브포인트 추가" with lore "" and "&7좌클릭시 해당 블럭을 세이브포인트로 지정합니다."
+			set slot 3 of player to blaze rod named "%arg-2%{@c} - &f세이브포인트 설정" with lore "" and "&7좌클릭시 설정 GUI를 오픈합니다."
+			set slot 4 of player to blaze rod named "%arg-2%{@c} - &f커맨드 추가" with lore "" and "&7좌클릭시 해당블럭에 커맨드를 추가합니다."
+			set slot 5 of player to blaze rod named "%arg-2%{@c} - &f커맨드 설정" with lore "" and "&7좌클릭시 설정 GUI를 오픈합니다."
+on stepping on pressure plate: #시작지점, 종료지점 세이브포인트를 밞았을때
+	if event-block is golden pressure plate:
+		set {_l} to "%event-block's location%"
+		loop {jumpmap::*}:
+			if loop-value is event-block's location:
+				set {_i} to loop-index
+			if {_i} is not set:
+				stop
+			if {jumpmap.%loop-index%.last} is event-block's location:
+				if {jump.start.%uuid of player%} is set:
+					if {jump.lastsavei.%uuid of player%} is size of {jumpmap.%loop-index%.save::*}:
+						if {jump.%loop-index%.top::%uuid of player%} is not set:
+							set {jump.%loop-index%.top::%uuid of player%} to 999 days
+						if difference between {jump.start.%uuid of player%} and now < {jump.%loop-index%.top::%uuid of player%}:
+							set {jump.%loop-index%.top::%uuid of player%} to difference between {jump.start.%uuid of player%} and now
+							set {jump.%loop-index%.top.player::%uuid of player%} to player
+							send "{@a} 점프맵을 &e%{jump.%loop-index%.top::%uuid of player%}%&f에 완료하여 개인 신기록을 달성하였습니다." to player
+						else:
+							send "{@a} 점프맵을 &e%difference between {jump.start.%uuid of player%} and now%&f에 완료하였습니다." to player
+						StopJumpMap(player)
+						play sound "entity.player.levelup" with volume 1 with pitch 1 to player
+						send title "&aClear!" to player
+				stop		
+		if {jump.start.%uuid of player%} is set:
+			delete {jump.start.%uuid of player%}
+			delete {jump.lastsave.%uuid of player%}
+			delete {jump.lastsavei.%uuid of player%}
+		else:
+			set {jump.items.%uuid of player%::*} to slot 3 of player, slot 4 of player, slot 5 of player
+			set slot 3 of player to iron pressure plate named "&f마지막 체크포인트로 &7(우클릭)" with lore "&7우클릭시 마지막 체크포인트로 이동합니다."
+			set slot 4 of player to golden pressure plate named "&6처음으로 &7(우클릭)" with lore "&7우클릭시 점프맵을 다시 시작합니다."
+			set slot 5 of player to barrier named "&c그만두기 &7(우클릭)" with lore "&7우클릭시 점프맵을 포기합니다."
+		set {jump.lastsavei.%uuid of player%} to 0
+		set {jump.start.%uuid of player%} to now
+		send title "&cStart!" to player
+		{jump.%{_i}%.command::%{_l}%::*} is set
+		set {execute.command.%player%} to true
+		loop {jump.%{_i}%.command::%{_l}%::*}:
+			execute op command "/%loop-value%"
+			wait a tick
+		delete {execute.command.%player%}
+	else if event-block is iron pressure plate:
+		if {jump.start.%uuid of player%} is set:
+			loop {jumpmap::*}:
+				loop {jumpmap.%loop-index%.save::*}:
+					if loop-value-2 is event-block's location:
+						if {jump.lastsavei.%uuid of player%} + 1 is "%loop-index-2%" parsed as integer:
+							set {jump.lastsave.%uuid of player%} to loop-value-2
+							set {jump.lastsavei.%uuid of player%} to "%loop-index-2%" parsed as integer
+							send "{@a} &e%difference between {jump.start.%uuid of player%} and now%&f에 세이브포인트 &6%loop-index-2%&f에 도달하였습니다." to player
+on inventory click: #점프맵 중 인벤토리 클릭 방지
+	if {jump.start.%uuid of player%} is set:
+		cancel event
+on drop: #점프맵 중 아이템 버리기 방지
+	if {jump.start.%uuid of player%} is set:
+		cancel event
+on command: #점프맵 중 명령어 사용불가
+	{execute.command.%player%} is not true
+	if {jump.start.%uuid of player%} is set:
+		send "{@a} 점프맵 중에는 명령어를 사용할 수 없습니다." to player
+		cancel event
+on quit: #퇴장시 점프맵 종료
+	if {jump.start.%uuid of player%} is set:
+		StopJumpMap(player)
+on join: #점프맵 순위에 기록된 닉네임과 현재 닉네임이 다를 경우 현재 닉네임으로 다시 기록, 접속시 점프맵 종료
+	loop {jumpmap::*}:
+		if "%{jump.%loop-index%.top.player::%uuid of player%}%" is not "%player%":
+			set {jump.%loop-index%.top.player::%uuid of player%} to player
+	if {jump.start.%uuid of player%} is set:		
+		StopJumpMap(player)
+on rightclick with iron pressure plate:
+	name of tool is "&f마지막 체크포인트로 &7(우클릭)"
+	teleport player to {jump.lastsave.%uuid of player%}
+	cancel event
+on rightclick with golden pressure plate:
+	name of tool is "&6처음으로 &7(우클릭)"
+	teleport player to {jumpmap::1}
+	cancel event
+on rightclick with barrier:
+	name of tool is "&c그만두기 &7(우클릭)":
+	StopJumpMap(player)
+	cancel event
+on leftclick with blaze rod: #점프맵 설정
+	if name of tool contains "{@c}":
+		set {_t} to name of tool
+		set {_t::*} to {_t} split by "{@c}"
+		cancel event
+		set {_loc} to event-block's location
+		if {_t::2} is " - &f세이브포인트 설정":
+			OpenJumpMapSavePoint(player,{_t::1})			
+		else if {_t::2} is " - &f커맨드 설정":
+			OpenJumpMapCommands(player,{_t::1})			
+		else if {_loc} is not set:
+			send "{@a} 좌표가 올바르지 않습니다." to player
+		else if {_t::2} is " - &f시작지점 지정":
+			set {jumpmap::%{_t::1}%} to {_loc}
+			send "{@a} &6%{jumpmap::%{_t::1}%}%&f를 &a시작지점&f으로 지정하였습니다." to player
+		else if {_t::2} is " - &f종료지점 지정":	
+			set {jumpmap.%{_t::1}%.last} to {_loc}
+			send "{@a} &6%{jumpmap.%{_t::1}%.last}%&f를 &c종료지점&f으로 지정하였습니다." to player
+		else if {_t::2} is " - &f세이브포인트 추가":
+			add {_loc} to {jumpmap.%{_t::1}%.save::*}
+			send "{@a} &6%{_loc}%&f를 &a세이브포인트&f에 추가하였습니다." to player
+		else if {_t::2} is " - &f커맨드 추가":
+			send "{@a} &6%{_loc}%&f에 추가할 커맨드를 채팅창에 입력해주세요."
+			send "&c(슬래쉬포함 x)&f 취소하실려면 채팅창에 '취소' 를 입력해주세요." to player
+			set {jump.chat.loc.%player%} to {_loc}
+			set {jump.chat.name.%player%} to {_t::1}
+on chat: #채팅으로 커맨드 추가
+	{jump.chat.name.%player%} is set
+	cancel event
+	if message is "취소":
+		send "{@a} 커맨드 추가를 &c취소&f하였습니다." to player
+	else:
+		set {_l} to "%{jump.chat.loc.%player%}%"
+		add message to {jump.%{jump.chat.name.%player%}%.command::%{_l}%::*}
+		send "{@a} &6%{_l}%&f에 &e'/%message%' &f커맨드를 추가하였습니다."
+	delete {jump.chat.name.%player%}
+	delete {jump.chat.loc.%player%}
+	
+on inventory click: #GUI내에서 세이브포인트 와 커맨드 설정
+	if name of player's top inventory contains "{@c}":
+		cancel event
+		event-item is not air
+		event-item is set
+		event-inventory is player's top inventory
+		set {_n} to name of event-inventory
+		set {_n::*} to {_n} split at "{@c} - "
+		set {_n} to {_n::1}
+		if {_n::2} is "세이브포인트 설정":
+			if inventory action is instant move:
+				remove {jumpmap.%{_n}%.save::%name of event-item%} from {jumpmap.%{_n}%.save::*}
+				set {jumpmap.%{_n}%.save::*} to {jumpmap.%{_n}%.save::*}
+				send "{@a} &6%name of event-item%&f을(를) &c제거&f하였습니다." to player			
+				OpenJumpMapSavePoint(player,"%{_n}%")
+			else:
+				send "{@a} &6%name of event-item%&f으(로) &a이동&f되었습니다." to player
+				teleport player to {jumpmap.%{_n}%.save::%name of event-item%}				
+		else if {_n::2} is "커맨드 설정":
+			if inventory action is instant move:
+				delete {jump.%{_n}%.command::%name of event-item%::*}
+				send "{@a} &6%name of event-item%&f을(를) &c제거&f하였습니다."
+				OpenJumpMapCommands(player,"%{_n}%")
+			else:
+				OpenJumpMapCommandsOfLoc(player,"%{_n}%", name of event-item)			
