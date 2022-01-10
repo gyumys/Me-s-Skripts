@@ -1,0 +1,36 @@
+#Copyright 2022. 규미(Gyumy) all rights reserved.
+
+#[개발환경]
+#Java : jre1.8.0_281 build 1.8.0_281-b09
+#Bukkit : git-Paper-1618 (MC: 1.12.2)
+#Skript : 2.5.3
+#Add-on : x
+
+#유튜브 : https://www.youtube.com/channel/UCVDdD9J2EZdqF6QwJ0PyP_A
+#블로그 : https://nalag.tistory.com/44
+#디스코드 : 규미#7691
+
+options:
+	a: &b[ &f상자정리 &b]&f
+command /상자정리쿠폰:
+	permission: chestclear.get
+	trigger:
+		give paper named "&6상자정리 쿠폰" with lore "%nl%&6◈ &f상자를 우클릭시 해당 상자를 정리합니다." to player
+on rightclick on chest:
+	if name of player's tool is "&6상자정리 쿠폰":
+		cancel event
+		send "{@a} 상자가 정리되었습니다." to player
+		set {_chest::*} to all items in event-block's inventory
+		delete event-block's inventory
+		loop {_chest::*}:
+			if name of loop-value is set:
+				add item amount of loop-value to {_item::%name of loop-value%}
+				set {_item.%name of loop-value%} to loop-value
+			else:
+				add item amount of loop-value to {_item::%type of loop-value%}
+				set {_item.%type of loop-value%} to loop-value
+		loop {_item::*}:
+			broadcast "%loop-index% %loop-value%"
+			add loop-value of {_item.%loop-index%} to event-block's inventory
+		remove 1 of player's tool from player's tool			
+		
