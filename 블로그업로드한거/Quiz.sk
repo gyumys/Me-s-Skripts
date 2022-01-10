@@ -1,0 +1,47 @@
+#Copyright 2022. 규미(Gyumy) all rights reserved.
+
+#[개발환경]
+#Java : jre1.8.0_281 build 1.8.0_281-b09
+#Bukkit : git-Paper-1618 (MC: 1.12.2)
+#Skript : 2.5.3
+#Add-on : x
+
+#유튜브 : https://youtu.be/oy0vsYGxzkE
+#블로그 : https://nalag.tistory.com/44
+#디스코드 : 규미#7691
+
+options:
+	a: &F[ &6Quiz &f]
+	p: 25 #정답을 맞췄을때 획득하는 포인트.
+on load:
+	set {quiz::지리::1::*} to "대한민국의 수도는? [OO]" and "서울"
+	set {quiz::넌센스::1::*} to "트랜스포머가 여친이없는 이유는? [OOO]" and "차여서"
+	set {quiz::지리::2::*} to "중국의 수도는? [OOO]" and "베이징"
+on unload:
+	delete {quiz::*}
+every 5 minutes:
+	if {quiz::now} is set:
+		broadcast "{@a} &e시간이 지나 퀴즈가 종료되었습니다. 정답 : %{quiz::now}%"
+	set {_t} to random text of indexes of {quiz::*}
+	set {_i} to random text of indexes of {quiz::%{_t}%::*}
+	broadcast "%nl%{@a} &6문제 &7: &e%{quiz::%{_t}%::%{_i}%::1}%"
+	broadcast "{@a} &6주제 &7: &e%{_t}% "
+	broadcast "{@a} &e정답을 &a채팅창&e 또는 &a/정답 [내용]&e 으로 입력하세요."
+	set {quiz::now} to {quiz::%{_t}%::%{_i}%::2}
+command /정답 [<text>]:
+	trigger:
+		if arg 1 is not set:
+			send "{@a} &e/정답 [내용]"
+		else if arg-1 is {quiz::now}:
+			RightQuiz(player)		
+		else:
+			send "{@a} &e삐빅! 오답입니다."
+on chat:
+	if message is {quiz::now}:
+		cancel event
+		RightQuiz(player)
+function RightQuiz(p:player):
+	set {_u} to uuid of {_p}
+	broadcast "{@a} &a%{_p}% &e님이 정답을 맞추어 {@p}포인트를 획득하였습니다."
+	add {@p} to {_p}'s money
+	delete {quiz::now}	
