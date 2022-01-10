@@ -1,0 +1,27 @@
+#Copyright 2022. 규미(Gyumy) all rights reserved.
+
+#[개발환경]
+#Java : jre1.8.0_281 build 1.8.0_281-b09
+#Bukkit : git-Paper-1618 (MC: 1.12.2)
+#Skript : 2.5.3
+#Add-on : x
+
+#유튜브 : https://youtu.be/iCxROni2mVE
+#블로그 : https://nalag.tistory.com/46
+#디스코드 : 규미#7691
+
+options:
+	d: 20 #지역채팅 거리
+command /지역채팅:
+	trigger:
+		if {local_chat.%player%} is set:
+			delete {local_chat.%player%}
+			send "&a[지역채팅] &f지역채팅이 비활성화되었습니다."
+		else:
+			set {local_chat.%player%} to true
+			send "&a[지역채팅] &f지역채팅이 활성화되었습니다."
+on chat:
+	{local_chat.%player%} is set
+	set {_p::*} to players in radius {@d} around player where [ input is online ]
+	set chat format to "&a[지역채팅 %size of {_p::*}%명] &f%chat format%"			
+	set recipients to {_p::*}
