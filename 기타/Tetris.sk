@@ -1,1 +1,405 @@
-asd
+options:
+	a: &5[ &f테트리스 &5]&f	
+on load:
+	
+	#블럭 셋팅.
+	set {tetris.mino::o::0::*} to "1,0", "2,0", "1,1" and "2,1"
+	set {tetris.mino::o::block::*} to yellow concrete and yellow stained glass block
+	
+	set {tetris.mino::j::0::*} to "0,0", "1,0", "2,0" and "0,1"
+	set {tetris.mino::j::1::*} to "1,-1", "1,0", "1,1" and "2,1"
+	set {tetris.mino::j::2::*} to "0,0", "1,0", "2,0" and "2,-1"
+	set {tetris.mino::j::3::*} to "0,-1", "1,-1", "1,0" and "1,1"
+	set {tetris.mino::j::block::*} to blue concrete and blue stained glass block
+	
+	set {tetris.mino::i::0::*} to "0,0", "1,0", "2,0" and "3,0"
+	set {tetris.mino::i::1::*} to "2,1", "2,0", "2,-1" and "2,-2"
+	set {tetris.mino::i::2::*} to "0,-1", "1,-1" ,"2,-1" and "3,-1"
+	set {tetris.mino::i::3::*} to "1,1", "1,0", "1,-1" and "1,-2"
+	set {tetris.mino::i::block::*} to light blue concrete and light blue stained glass block
+			
+	set {tetris.mino::z::0::*} to "1,0", "2,0", "0,1" and "1,1"
+	set {tetris.mino::z::1::*} to "1,-1", "1,0", "2,0" and "2,1"
+	set {tetris.mino::z::2::*} to "0,0", "1,0" ,"1,-1" and "2,-1"
+	set {tetris.mino::z::3::*} to "0,-1", "0,0", "1,0" and "1,1"
+	set {tetris.mino::z::block::*} to red concrete and red stained glass block			
+
+	set {tetris.mino::s::0::*} to "0,0", "1,0", "1,1" and "2,1"
+	set {tetris.mino::s::1::*} to "1,1", "1,0", "2,0" and "2,-1"
+	set {tetris.mino::s::2::*} to "1,0", "2,0" ,"0,-1" and "1,-1"
+	set {tetris.mino::s::3::*} to "0,1", "0,0", "1,0" and "1,-1"
+	set {tetris.mino::s::block::*} to lime concrete and lime stained glass block
+
+	set {tetris.mino::l::0::*} to "0,0", "1,0", "2,0" and "2,1"
+	set {tetris.mino::l::1::*} to "0,-1", "0,0", "0,1" and "1,-1"
+	set {tetris.mino::l::2::*} to "0,0", "1,0" ,"2,0" and "0,-1"
+	set {tetris.mino::l::3::*} to "0,1", "1,1", "1,0" and "1,-1"
+	set {tetris.mino::l::block::*} to orange concrete and orange stained glass block			
+
+	set {tetris.mino::t::0::*} to "0,0", "1,0", "2,0" and "1,1"
+	set {tetris.mino::t::1::*} to "1,1", "1,0", "2,0" and "1,-1"
+	set {tetris.mino::t::2::*} to "0,0", "1,0" ,"1,-1" and "2,0"
+	set {tetris.mino::t::3::*} to "0,0", "1,1", "1,0" and "1,-1"
+	set {tetris.mino::t::block::*} to purple concrete and purple stained glass block			
+		
+	
+	
+	set {tetris.control::0::*} to 0, 1 down, 1 left and 1 right
+	set {tetris.control::90::*} to 1 left, 1 right, 1 down and 0
+	set {tetris.control::180::*} to 1 down, 0, 1 right and 1 left
+	set {tetris.control::270::*} to 1 right, 1 left ,0 and 1 down
+	
+on unload:
+	delete {tetris.mino::*}
+	delete {tetris.control::*}
+	loop 6 times:
+		delete {tetris::%loop-num%::*}
+function StopTetris(p: player):
+	set {_i} to {tetris.playing::%{_p}%}
+	set {_loc} to location 15 up and 8 left {tetris::%{_i}%}
+	set blocks within {_loc} and location 5 right and 5 up {_loc} to air	
+	set blocks within location 1 right and 1 up {tetris::%{_i}%} and location 10 right and 21 up {tetris::%{_i}%} to air
+	set {_loc} to location 1 up and 14 right {tetris::%{_i}%}
+	set blocks within {_loc} and location 5 right and 19 up {_loc} to air	
+	delete {tetris::%{_i}%::*}
+	delete {tetris.playing::%{_p}%}
+	apply mining fatigue 255 without particles to {_p} for 0 seconds replacing existing effect
+function RotateBlock(i:text, r:integer):
+	{tetris.mino::%{tetris::%{_i}%::block}%::1::*} is set
+	set {_a} to {tetris::%{_i}%::rotation}
+	loop {_r} times:
+		if {tetris::%{_i}%::rotation} is 3:
+			set {tetris::%{_i}%::rotation} to 0
+		else:
+			add 1 to {tetris::%{_i}%::rotation}
+	set {_b} to {tetris::%{_i}%::rotation}
+	if IsCrash({_i}, {tetris::%{_i}%::o}, {_a}) is true:
+		set {tetris::%{_i}%::rotation} to {_a}
+		stop
+	set {tetris::%{_i}%::rotation} to {_a}	
+	DeleteBlock({_i})
+	set {tetris::%{_i}%::rotation} to {_b}
+	CreateNowBlock({_i})
+		
+function IsCrash(i:text,o:location,r:integer) :: boolean: #다른 블럭에 부딛힐경우 true를 반환.
+	loop {tetris.mino::%{tetris::%{_i}%::block}%::%{_r}%::*}:
+		set {_l::*} to split loop-value by ","
+		set {_loc} to location {_l::1} parsed as integer right and {_l::2} parsed as integer up {tetris::%{_i}%::o}
+		add {_loc} to {_b::*}
+	loop {tetris.mino::%{tetris::%{_i}%::block}%::%{tetris::%{_i}%::rotation}%::*}:
+		set {_l::*} to split loop-value by ","
+		set {_loc} to location {_l::1} parsed as integer right and {_l::2} parsed as integer up {_o}
+		{_b::*} doesn't contain {_loc}
+		block at {_loc} is not {tetris.mino::%{tetris::%{_i}%::block}%::block::2}
+		block at {_loc} is not air
+		return true
+	return false
+function CreateBlock(o:location, b:text, r:text):
+	loop {tetris.mino::%{_b}%::%{_r}%::*}:
+		set {_l::*} to split loop-value by ","
+		set {_loc} to location {_l::1} parsed as integer right and {_l::2} parsed as integer up {_o}
+		set block at {_loc} to {tetris.mino::%{_b}%::block::1}
+function CreateNowBlock(i:text):	
+	set {_ghost} to GetDropPoint({_i})
+	
+	loop {tetris.mino::%{tetris::%{_i}%::block}%::%{tetris::%{_i}%::rotation}%::*}:
+		set {_l::*} to split loop-value by ","
+		set {_loc} to location {_l::1} parsed as integer right and {_l::2} parsed as integer up {tetris::%{_i}%::o}
+		set block at {_loc} to {tetris.mino::%{tetris::%{_i}%::block}%::block::1}
+		
+		#Ghost
+		{_ghost} is not {tetris::%{_i}%::o}
+		set {_loc} to location {_l::1} parsed as integer right and {_l::2} parsed as integer up {_ghost}
+		set block at {_loc} to {tetris.mino::%{tetris::%{_i}%::block}%::block::2}
+function DeleteBlock(i:text):
+	set {_ghost} to GetDropPoint({_i})
+	loop {tetris.mino::%{tetris::%{_i}%::block}%::%{tetris::%{_i}%::rotation}%::*}:
+		set {_l::*} to split loop-value by ","
+		set block at location {_l::1} parsed as integer right and {_l::2} parsed as integer up {tetris::%{_i}%::o} to air
+		set block at location {_l::1} parsed as integer right and {_l::2} parsed as integer up {_ghost} to air
+		
+function MoveBlock( i:text, d:direction):	
+	stop if IsCrash({_i} and location {_d} {tetris::%{_i}%::o}, {tetris::%{_i}%::rotation}) is true		
+	DeleteBlock({_i})
+	set {tetris::%{_i}%::o} to location {_d} {tetris::%{_i}%::o}
+	CreateNowBlock({_i})	
+function SoftDropBlock(i:text,auto:boolean):
+	if IsCrash({_i} and location 1 down {tetris::%{_i}%::o}, {tetris::%{_i}%::rotation}) is true:
+		if {_auto} is true:
+			if {tetris::%{_i}%::drop} is true:
+				delete {tetris::%{_i}%::block}
+			else:
+				set {tetris::%{_i}%::drop} to true
+			
+	else:
+		set {tetris::%{_i}%::count} to 0 if {_auto} is false #수동으로 드랍시 자동드랍 카운트를 초기화함.
+		DeleteBlock({_i})
+		set {tetris::%{_i}%::o} to location 1 down {tetris::%{_i}%::o}
+		CreateNowBlock({_i})	
+function GetDropPoint(i:text) :: location: #블럭의 예상 낙하지점을 반환.
+	loop 21 times:
+		if IsCrash({_i} and location loop-num down {tetris::%{_i}%::o}, {tetris::%{_i}%::rotation}) is true:
+			return location loop-num -1 down {tetris::%{_i}%::o}
+function HardDropBlock(i:text):
+	DeleteBlock({_i})
+	set {tetris::%{_i}%::o} to GetDropPoint({_i})
+	CreateNowBlock({_i})					
+	delete {tetris::%{_i}%::block}
+function CheckTetrisLine(i:text):
+	set {_loc} to location 1 right {tetris::%{_i}%}
+	loop 20 times:
+		add 1 to {_j}
+		set {_k} to 0
+		loop 10 times:
+			if block at location {_j} up and (loop-num-2) - 1 right {_loc} is not air:
+				add 1 to {_k}
+		if {_k} is 10:
+			stop playing sounds "entity.player.levelup" and "entity.arrow.hit_player" to {tetris::%{_i}%::playing}
+			play sound "entity.player.levelup" with volume 0.4 with pitch 1.4 to {tetris::%{_i}%::playing}
+			play sound "entity.arrow.hit_player" with pitch 0.9 to {tetris::%{_i}%::playing}
+			loop 21 - loop-num times:
+				set {_n} to location {_j} + (loop-num-2) - 1 up and 1 left {_loc}
+				loop 10 times:
+					set block at location loop-num-3 right {_n} to block at location loop-num-3 right and 1 up {_n}
+			remove 1 from {_j}
+			add 1 to {tetris::%{_i}%::line}
+				
+	
+function SetTetrisBlock(i:text):
+	if size of {tetris::%{_i}%::bag::*} < 8:
+		set {_bag::*} to indexes of {tetris.mino::*}
+		loop 7 times:
+			set {_mino} to random text of {_bag::*}
+			add {_mino} to {tetris::%{_i}%::bag::*}
+			remove {_mino} from {_bag::*}
+	set {tetris::%{_i}%::o} to location 20 up and 4 right {tetris::%{_i}%}
+	set {tetris::%{_i}%::block} to {tetris::%{_i}%::bag::1}
+	delete {tetris::%{_i}%::bag::1}
+	set {tetris::%{_i}%::bag::*} to {tetris::%{_i}%::bag::*}
+	set {tetris::%{_i}%::rotation} to 0
+	DisplayNextBlock({_i})
+	CreateNowBlock({_i})
+function DisplayNextBlock(i:text):
+	set {_loc} to location 1 up and 14 right {tetris::%{_i}%}
+	set blocks within {_loc} and location 5 right and 19 up {_loc} to air
+	loop 5 times:
+		set {_loc} to location 15 right and 22 - (loop-num-1) * 4 up {tetris::%{_i}%}
+		CreateBlock({_loc}, {tetris::%{_i}%::bag::%loop-num%}, "0")
+function StartTetris(i:text, p: player):
+
+	send "{@a} %{_i}%번방에 입장하였습니다." to {_p}
+	set {tetris::%{_i}%::playing} to {_p}
+	set {tetris.playing::%{_p}%} to {_i}
+	
+	set {_loc} to location 0.5 up (block at location 22 behind, 9 up and 6 right {tetris::%{_i}%})'s location
+	set {_loc}'s yaw to {tetris::%{_i}%}'s yaw
+	
+	apply mining fatigue 255 without particles to {_p} for 999 days replacing existing effect
+	make {_p} fly
+	teleport {_p} to {_loc}
+	
+	send title "{@a}" with subtitle "&a&l3초후 게임이 시작됩니다." to {_p}
+	play sound "block.note.bell" with pitch 0.4 to {_p}
+	wait a seconds
+	send title "{@a}" with subtitle "&e&l2초후 게임이 시작됩니다." to {_p}
+	play sound "block.note.bell" with pitch 0.4 to {_p}
+	wait a seconds
+	send title "{@a}" with subtitle "&c&l1초후 게임이 시작됩니다." to {_p}
+	play sound "block.note.bell" with pitch 0.4 to {_p}
+	wait 0.5 seconds
+	send title "{@a}" with subtitle "&e&l준비." to {_p}
+	wait 0.5 seconds
+	send title "{@a}" with subtitle "&c&l시작!!" to {_p}	
+	play sound "block.note.flute" with pitch 2 to {_p}
+	set {_p}'s hotbar slot to slot 8 of {_p}
+	set {_yaw} to {_loc}'s yaw
+	SetTetrisBlock({_i})
+	set {_now} to now
+	while {tetris::%{_i}%::playing} is {_p}:
+		if {tetris::%{_i}%::block} is not set:
+			delete {tetris::%{_i}%::drop}
+			delete {tetris::%{_i}%::count}
+			delete {tetris::%{_i}%::hold_c}
+			play sound "entity.player.levelup" with volume 0.2 with pitch 2 to {_p}
+			play sound "entity.arrow.hit_player" with pitch 0.8 to {_p}			
+			CheckTetrisLine({_i})
+			SetTetrisBlock({_i})
+		if 40 - {tetris::%{_i}%::line} + 0 < 1:
+			StopTetris({_i})
+			play sound "ui.toast.challenge_complete" to {_p}
+			send title "&5[ &f테트리스 &5]" with subtitle "&6%difference between {_now} and now%" to {_p}
+			stop loop
+		if mod({tetris::%{_i}%::count},21) is 0:
+			SoftDropBlock({_i}, true)
+		send action bar "&7남은 줄 : &f%40 - {tetris::%{_i}%::line} + 0%" to {_p}
+		wait a tick
+		if {_p}'s location is not {_loc}:
+			set {_l::*} to {_p}'s location's z-coord, {_p}'s location's x-coord, {_loc}'s z-coord and {_loc}'s x-coord
+			loop 2 times:
+				delete {_j}
+				if {_l::%loop-num%} > {_l::%loop-num+2%}:
+					set {_j} to loop-num + loop-num - 1
+				else if {_l::%loop-num%} < {_l::%loop-num+2%}:
+					set {_j} to loop-num + loop-num
+				if {_j} is set:
+					{tetris.control::%{_yaw}%::%{_j}%} is not 0
+					if {tetris.control::%{_yaw}%::%{_j}%} is 1 down:
+						loop 5 times:
+							SoftDropBlock({_i}, false)
+					else:
+						if difference between {_a} and now < 0.14 seconds:
+							MoveBlock({_i}, {tetris.control::%{_yaw}%::%{_j}%})
+						MoveBlock({_i}, {tetris.control::%{_yaw}%::%{_j}%})
+						set {_a} to now
+			teleport {_p} to {_loc}	
+		add 1 to {tetris::%{_i}%::count}	
+	delete {tetris::%{_i}%::*}	
+	
+function OpenTetris(p:player):
+	set {_gui} to chest inventory with 5 rows named "{@a} 테트리스"
+	set slot integers from 0 and 8 and integers from 36 and 44 of {_gui} to black stained glass pane named " "
+	set slot 40 of {_gui} to clock named "{@a} 테트리스 순위" with lore "" and " &7클릭시 테트리스 순위를 확인합니다."
+	open {_gui} to {_p}
+	set {_block::*} to magenta concrete, light blue concrete, yellow concrete, lime concrete, red concrete and blue concrete
+	set {_slot::*} to 11, 13, 15, 29, 31 and 33
+	
+	#사용중인 방인지 실시간 확인.
+	while name of {_p}'s top inventory is "{@a} 테트리스":
+		loop 6 times:
+			if {tetris::%loop-num%} is set:
+				if {tetris::%loop-num%::*} is set:
+					set slot {_slot::%loop-num%} of {_gui} to {_block::%loop-num%} named "{@a} %loop-num%번방" with lore "" and " &c이미 다른플레이어가 사용중인 방입니다."
+				else:
+					set slot {_slot::%loop-num%} of {_gui} to {_block::%loop-num%} named "{@a} %loop-num%번방" with lore "" and " &a클릭시 %loop-num%방에 입장합니다."
+			else:
+				delete slot {_slot::%loop-num%} of {_gui}
+		wait a seconds
+function FormatFacing(loc:location) :: location: #방향을 일정하게함. (원하는 방향으로 좌표이동이 쉽도록.)
+	set {_loc}'s pitch to 0
+	loop 90, 180 and 270:
+		if {_loc}'s yaw is between loop-value - 45 and loop-value + 44.99:
+			set {_loc}'s yaw to loop-value
+			return {_loc}
+	set {_loc}'s yaw to 0
+	return {_loc}
+function SetOutLine(x:integer, y:integer , loc: location): 
+	set blocks within location {_y}-1 up {_loc} and location {_x}-1 right and {_y}-1 up {_loc} to smooth andesite #가로 상
+	set blocks within {_loc} and location {_x}-1 right {_loc} to smooth andesite #가로 하
+	set blocks within location 1 up {_loc} and location {_y}-1 up {_loc} to smooth andesite #세로 좌
+	set blocks within location 1 up and {_x}-1 right {_loc} and location {_y}-1 up and {_x}-1 right {_loc} to smooth andesite #세로 우
+function CreateTetrisMap(p:location):
+	
+	#게임판 생성.
+	SetOutLine(12, 23, {_p})
+	set blocks within location 22 up {_p} and location 11 right and 22 up {_p} to air
+	
+	set {_loc} to location 1 infront and 1 right {_p}
+	set blocks within {_loc} and location 9 right and 20 up {_loc} to black concrete
+	
+	#다음 블럭 표지판 생성.
+	SetOutLine(8, 22, (location 13 right {_p}))
+	
+	set {_loc} to location 1 up, 1 infront and 14 right {_p}
+	set blocks within {_loc} and location 5 right and 19 up {_loc} to black concrete
+	
+	#블럭 바꾸기 표지판 생성.
+	SetOutLine(8, 8, location 14 up and 9 left {_p})
+	
+	set {_loc} to location 15 up , 1 infront and 8 left {_p}
+	set blocks within {_loc} and location 5 right and 5 up {_loc} to black concrete
+function HoldBlock(i:text):
+	{tetris::%{_i}%::hold_c} is not true
+	set {_loc} to location 15 up and 8 left {tetris::%{_i}%}
+	set blocks within {_loc} and location 5 right and 5 up {_loc} to air
+	DeleteBlock({_i})
+	delete {tetris::%{_i}%::drop}
+	delete {tetris::%{_i}%::count}		
+	set {tetris::%{_i}%::o} to location 20 up and 4 right {tetris::%{_i}%}	
+	set {tetris::%{_i}%::hold_c} to true
+	if {tetris::%{_i}%::hold} is not set:
+		set {tetris::%{_i}%::hold} to {tetris::%{_i}%::block}
+		delete {tetris::%{_i}%::block}
+		SetTetrisBlock({_i})
+	else:	
+		set {_b} to {tetris::%{_i}%::block}
+		set {tetris::%{_i}%::block} to {tetris::%{_i}%::hold}
+		set {tetris::%{_i}%::hold} to {_b}
+		set {tetris::%{_i}%::rotation} to 0
+		CreateNowBlock({_i})	
+	set {_loc} to location 17 up and 7 left {tetris::%{_i}%}
+	CreateBlock({_loc}, {tetris::%{_i}%::hold}, "0")
+on damage:
+	cancel event
+on sneak toggle:
+	player is sneaking
+	{tetris.playing::%player%} is set
+	StopTetris(player)
+on tool change:
+	{tetris.playing::%player%} is set
+	wait a tick
+	set {_slot} to "%index of player's hotbar slot%" parsed as integer
+	if {_slot} is 0:
+		RotateBlock({tetris.playing::%player%}, 3)
+	else if {_slot} is 1:	
+		RotateBlock({tetris.playing::%player%}, 2)
+	else if {_slot} is 2:
+		RotateBlock({tetris.playing::%player%}, 1)
+	else if {_slot} is 3:
+		HoldBlock({tetris.playing::%player%})
+		
+	set player's hotbar slot to slot 8 of player	
+on click:	
+	{tetris.playing::%player%} is set
+	HardDropBlock({tetris.playing::%player%})
+on swap hand item:
+	{tetris.playing::%player%} is set
+	cancel event
+	RotateBlock({tetris.playing::%player%}, 1)	
+	
+on inventory click:
+	if name of player's top inventory is "{@a} 테트리스":
+		cancel event
+		if name of event-item contains "번방":
+			if "%lore of event-item%" contains "&a클릭시":
+				close player's inventory
+				set {_i} to name of event-item
+				replace "{@a} " and "번방" with "" in {_i}
+				StartTetris({_i}, player)
+on quit:
+	{tetris.playing::%player%} is set
+	StopTetris(player)
+command /테트리스 [<text>] [<integer>]:
+	trigger:
+		if player is not op:
+			OpenTetris(player)
+			stop
+		if arg 1 is not set:
+			send "{@a} /테트리스 열기 - 테트리스 GUI를 오픈합니다."
+			send "{@a} /테트리스 생성 - 테트리스를 생성합니다."
+			send "{@a} /테트리스 목록 - 테트리스 목록을 확인합니다."
+			send "{@a} /테트리스 삭제 [번호] - 테트리스 를 삭제합니다."
+			send "{@a} /테트리스 로비 - 게임종료후 이동될곳을 설정합니다."
+		else if arg 1 is "열기":
+			OpenTetris(player)
+		else if arg 1 is "목록":
+			loop {tetris::*}:
+				send "{@a} %loop-index%. %loop-value%"
+		else if arg 1 is "삭제":
+			send "{@a} %arg-2%번 테트리스맵을 삭제하였습니다."
+			delete {tetris::%arg-2%}
+			delete {tetris::%arg-2%::*}
+			set {tetris::*} to {tetris::*}
+			
+		else if arg 1 is "생성":
+			if size of {tetris::*} >= 6:
+				send "{@a} 더이상 생성할 수 없습니다."
+				stop
+			send "{@a} 테트리스를 생성하였습니다."
+			
+			#플레이어 기준으로 맵생성 시작점을 정함.
+			set {_p} to FormatFacing(location 1 up and 1 in front of player's location)
+			
+			#테트리스 목록에 추가.
+			add {_p} to {tetris::*}
+			
+			CreateTetrisMap({_p})
