@@ -225,7 +225,7 @@ function StartTetris(i:text, p: player):
 			CheckTetrisLine({_i})
 			SetTetrisBlock({_i})
 		if 40 - {tetris::%{_i}%::line} + 0 < 1:
-			StopTetris({_i})
+			StopTetris({_p})
 			play sound "ui.toast.challenge_complete" to {_p}
 			send title "&5[ &f테트리스 &5]" with subtitle "&6%difference between {_now} and now%" to {_p}
 			stop loop
