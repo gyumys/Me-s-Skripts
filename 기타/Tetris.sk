@@ -328,8 +328,6 @@ function HoldBlock(i:text):
 		CreateNowBlock({_i})	
 	set {_loc} to location 17 up and 7 left {tetris::%{_i}%}
 	CreateBlock({_loc}, {tetris::%{_i}%::hold}, "0")
-on damage:
-	cancel event
 on sneak toggle:
 	player is sneaking
 	{tetris.playing::%player%} is set
